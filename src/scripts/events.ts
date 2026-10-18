@@ -111,21 +111,37 @@ function renderCard(template: HTMLTemplateElement, event: SwimEvent, today: Cale
         badge.hidden = false
       }
       break
-    case 'past':
-      number.textContent = String(timing.daysAgo)
-      unit.textContent = timing.daysAgo === 1 ? 'day ago' : 'days ago'
-      break
   }
 
   return card
 }
 
-function renderList(listId: string, listEvents: SwimEvent[], today: CalendarDate): void {
+function renderPastRow(template: HTMLTemplateElement, event: SwimEvent, today: CalendarDate): DocumentFragment {
+  const row = template.content.cloneNode(true) as DocumentFragment
+  const timing = eventTiming(event.dateStart, event.dateEnd, today)
+  const daysAgo = timing.kind === 'past' ? timing.daysAgo : 0
+
+  fillName(row, event)
+  field(row, 'place').textContent = listLocation(event.location)
+  fillDates(field(row, 'dates'), event)
+  field(row, 'finished').textContent = daysAgo === 1 ? 'Finished yesterday' : `Finished ${daysAgo} days ago`
+  return row
+}
+
+type Renderer = (template: HTMLTemplateElement, event: SwimEvent, today: CalendarDate) => DocumentFragment
+
+function renderList(
+  listId: string,
+  templateId: string,
+  renderer: Renderer,
+  listEvents: SwimEvent[],
+  today: CalendarDate,
+): void {
   const list = document.getElementById(listId)
-  const template = document.getElementById('event-card-template') as HTMLTemplateElement | null
+  const template = document.getElementById(templateId) as HTMLTemplateElement | null
   if (!list || !template) return
 
-  list.replaceChildren(...listEvents.map((event) => renderCard(template, event, today)))
+  list.replaceChildren(...listEvents.map((event) => renderer(template, event, today)))
 
   const empty = list.parentElement?.querySelector<HTMLElement>('.event-list-empty')
   if (empty) empty.hidden = listEvents.length > 0
@@ -215,8 +231,8 @@ function render(): void {
   const upcomingList = renderFeatured(live, upcoming, today)
 
   renderToday(today)
-  renderList('upcoming-events', upcomingList, today)
-  renderList('past-events', past, today)
+  renderList('upcoming-events', 'event-card-template', renderCard, upcomingList, today)
+  renderList('past-events', 'past-row-template', renderPastRow, past, today)
   setCount('upcoming', upcomingList.length)
   setCount('past', past.length)
 }

@@ -2,8 +2,8 @@
 /**
  * EventCardTemplate Component
  *
- * @description An HTML <template> for one event card in the event lists. Events are
- * loaded in the browser, so `src/scripts/events.ts` clones and fills this template.
+ * @description HTML <template>s for one card in the Upcoming list and one row in the Past
+ * list. Events are loaded in the browser, so `src/scripts/events.ts` clones and fills them.
  */
 ---
 
@@ -26,6 +26,22 @@
       <span class="event-card__number" data-field="number"></span>
       <span class="event-card__unit" data-field="unit"></span>
     </p>
+  </li>
+</template>
+
+<template id="past-row-template">
+  <li class="past-row">
+    <div class="past-row__info">
+      <h3 class="past-row__name">
+        <span data-field="name"></span>
+        {/* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid -- href is set by src/scripts/events.ts */}
+        <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
+      </h3>
+      <p class="event-card__meta">
+        <span data-field="place"></span> · <span class="past-row__dates" data-field="dates"></span>
+      </p>
+    </div>
+    <p class="past-row__finished" data-field="finished"></p>
   </li>
 </template>
 
@@ -121,6 +137,58 @@
 
   .event-card__unit {
     color: var(--text-muted-color);
+  }
+
+  // Past events: one bordered list with dividers, no big numbers
+  .past-list {
+    gap: 0;
+    border: 1px solid var(--border-subtle-color);
+    border-radius: var(--radius-h);
+    background-color: var(--surface-color);
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  .past-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    padding: var(--space-s) var(--space-m);
+
+    & + & {
+      border-block-start: 1px solid var(--border-subtle-color);
+    }
+
+    @include breakpoint(m) {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-m);
+    }
+  }
+
+  .past-row__info {
+    flex-grow: 1;
+    min-inline-size: 0;
+  }
+
+  .past-row__name {
+    font-size: var(--font-size-1);
+    line-height: 1.3;
+  }
+
+  // keep "24–26 Jul 2026" together when the line wraps
+  .past-row__dates {
+    white-space: nowrap;
+  }
+
+  .past-row__finished {
+    color: var(--text-muted-color);
+
+    @include breakpoint(m) {
+      white-space: nowrap;
+    }
   }
 
   .badge {
