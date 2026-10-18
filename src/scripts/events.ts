@@ -199,6 +199,11 @@ function renderFeatured(live: SwimEvent[], upcoming: SwimEvent[], today: Calenda
   return rest
 }
 
+function setCount(name: string, count: number): void {
+  const element = document.querySelector(`[data-count="${name}"]`)
+  if (element) element.textContent = `(${count})`
+}
+
 function render(): void {
   const today = localToday()
   const kindOf = (event: SwimEvent) => eventTiming(event.dateStart, event.dateEnd, today).kind
@@ -207,9 +212,13 @@ function render(): void {
   // Most recently finished first
   const past = events.filter((event) => kindOf(event) === 'past').reverse()
 
+  const upcomingList = renderFeatured(live, upcoming, today)
+
   renderToday(today)
-  renderList('upcoming-events', renderFeatured(live, upcoming, today), today)
+  renderList('upcoming-events', upcomingList, today)
   renderList('past-events', past, today)
+  setCount('upcoming', upcomingList.length)
+  setCount('past', past.length)
 }
 
 async function loadEvents(isRefresh: boolean): Promise<void> {

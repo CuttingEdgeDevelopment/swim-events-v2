@@ -3,7 +3,7 @@ import DefaultLayout from '@layouts/DefaultLayout.astro'
 import EventCardTemplate from '@components/EventCardTemplate.astro'
 import FeaturedEventTemplate from '@components/FeaturedEventTemplate.astro'
 import { Icon } from 'astro-icon/components'
-import { Button, Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-astro-components'
+import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-astro-components'
 ---
 
 <DefaultLayout title="Swim Events Countdown" useTitleTemplate={false}>
@@ -23,9 +23,22 @@ import { Button, Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'access
     </section>
   </div>
 
-  <section class="mb-16" aria-labelledby="events-heading">
+  <section class="all-events" aria-labelledby="events-heading">
     <div class="container">
-      <h2 id="events-heading" class="sr-only">Events</h2>
+      <div class="events-toolbar">
+        <h2 id="events-heading" class="events-toolbar__heading">All events</h2>
+        <div class="events-toolbar__actions">
+          <p id="events-status" role="status" class="events-status" data-state="loading">
+            <span data-field="text">Loading events</span><span class="loading-dots" aria-hidden="true"
+              ><span>.</span><span>.</span><span>.</span></span
+            >
+          </p>
+          <button id="refresh-events" type="button" class="refresh-button">
+            <Icon aria-hidden="true" name="lucide:refresh-cw" size="1.1rem" />
+            <span data-field="label">Update events</span>
+          </button>
+        </div>
+      </div>
 
       <noscript>
         <Notification type="warning">
@@ -33,28 +46,20 @@ import { Button, Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'access
         </Notification>
       </noscript>
 
-      <div class="events-toolbar">
-        <p id="events-status" role="status" class="events-status" data-state="loading">
-          <span data-field="text">Loading events</span><span class="loading-dots" aria-hidden="true"
-            ><span>.</span><span>.</span><span>.</span></span
-          >
-        </p>
-        <Button id="refresh-events" size="sm" variant="outlined" animateOnHover animationType="rotate">
-          <Icon aria-hidden="true" name="lucide:refresh-cw" size="1.25rem" />
-          Update events
-        </Button>
-      </div>
-
-      <Tabs>
-        <TabsList aria-label="Events">
-          <TabsTab id="upcoming-tab" controls="upcoming-panel" selected>Upcoming events</TabsTab>
-          <TabsTab id="past-tab" controls="past-panel">Past events</TabsTab>
+      <Tabs class="event-tabs">
+        <TabsList aria-label="Events" class="event-tabs__list">
+          <TabsTab id="upcoming-tab" controls="upcoming-panel" class="event-tabs__tab" selected>
+            Upcoming <span class="event-tabs__count" data-count="upcoming"></span>
+          </TabsTab>
+          <TabsTab id="past-tab" controls="past-panel" class="event-tabs__tab">
+            Past <span class="event-tabs__count" data-count="past"></span>
+          </TabsTab>
         </TabsList>
-        <TabsPanel id="upcoming-panel" labelledby="upcoming-tab" selected>
+        <TabsPanel id="upcoming-panel" labelledby="upcoming-tab" class="event-tabs__panel" selected>
           <ul id="upcoming-events" class="event-list"></ul>
           <p class="event-list-empty" hidden>No upcoming events.</p>
         </TabsPanel>
-        <TabsPanel id="past-panel" labelledby="past-tab">
+        <TabsPanel id="past-panel" labelledby="past-tab" class="event-tabs__panel">
           <ul id="past-events" class="event-list"></ul>
           <p class="event-list-empty" hidden>No past events.</p>
         </TabsPanel>
@@ -73,6 +78,8 @@ import { Button, Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'access
 </script>
 
 <style lang="scss">
+  @use '../assets/scss/base/breakpoint' as *;
+
   .intro {
     padding-block: var(--space-l) var(--space-m);
   }
@@ -87,6 +94,10 @@ import { Button, Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'access
     line-height: 1.15;
   }
 
+  .all-events {
+    margin-block-end: var(--space-2xl);
+  }
+
   .events-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -94,6 +105,86 @@ import { Button, Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'access
     align-items: center;
     gap: var(--space-s);
     margin-block-end: var(--space-m);
+  }
+
+  .events-toolbar__heading {
+    font-size: var(--font-size-2);
+  }
+
+  .events-toolbar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-s);
+  }
+
+  .refresh-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    cursor: pointer;
+    border: 2px solid var(--pool-color);
+    border-radius: 999px;
+    background-color: var(--surface-color);
+    padding-inline: var(--space-s);
+    min-block-size: 44px;
+    color: var(--pool-color);
+    font-weight: 700;
+    font-size: var(--font-size--1);
+
+    &:hover {
+      background-color: var(--badge-info-bg);
+    }
+  }
+
+  // Upcoming / Past as a pill-shaped switch without a box around the panel
+  :global(.event-tabs__list) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4xs);
+    margin-block-end: var(--space-m);
+    border: 1px solid var(--border-strong-color);
+    border-radius: 999px;
+    background-color: var(--surface-color);
+    padding: var(--space-4xs);
+
+    @include breakpoint(m) {
+      display: inline-flex;
+    }
+  }
+
+  :global(.event-tabs__tab.tab) {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-color: transparent;
+    padding: 0 var(--space-m);
+    min-block-size: 44px;
+    color: var(--text-color);
+    font-size: var(--font-size-0);
+
+    &:hover {
+      box-shadow: none;
+      background-color: var(--badge-info-bg);
+      color: var(--text-color);
+    }
+
+    &[aria-selected='true'] {
+      // the border keeps the selected tab visible in forced-colours mode
+      border-color: var(--pool-color);
+      box-shadow: none;
+      background-color: var(--pool-color);
+      color: var(--on-pool-color);
+    }
+  }
+
+  :global(.event-tabs__count) {
+    font-weight: 400;
+  }
+
+  :global(.event-tabs__panel.tab-panel) {
+    border: none;
+    padding: 0;
+    min-block-size: 0;
   }
 
   .events-status {
