@@ -77,3 +77,41 @@
     text-decoration: none;
   }
 }
+
+// Lane-rope stripes, the only decoration: 6px above the header, 4px above the footer.
+// Pseudo-elements are never read out, and the stripes go in forced-colours mode.
+@mixin lane-rope($size) {
+  display: block;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--pool-color) 0 20px,
+    var(--lane-gap) 20px 28px,
+    var(--lane-red) 28px 48px,
+    var(--lane-gap) 48px 56px
+  );
+  block-size: $size;
+  content: '';
+
+  @media (forced-colors: active) {
+    display: none;
+  }
+}
+
+body > header::before {
+  @include lane-rope(6px);
+}
+
+body > footer::before {
+  @include lane-rope(4px);
+}
+
+// Windows High Contrast and other forced-colours modes drop backgrounds, so states
+// that rely on a fill get system colours instead
+@media (forced-colors: active) {
+  .event-link:focus-visible {
+    box-shadow: none;
+    background-color: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+}

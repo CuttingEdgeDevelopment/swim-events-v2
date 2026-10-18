@@ -150,6 +150,24 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
       border-color: var(--disabled-border);
       background-color: var(--disabled-bg);
       color: var(--text-muted-color);
+
+      @media (forced-colors: active) {
+        border-color: GrayText;
+        color: GrayText;
+      }
+    }
+  }
+
+  // The only motion on the page: the refresh icon turns while events load
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html:not(.reduce-motion)) .refresh-button[aria-disabled='true'] :global(svg) {
+      animation: refresh-spin 1.2s linear infinite;
+    }
+  }
+
+  @keyframes refresh-spin {
+    to {
+      rotate: 360deg;
     }
   }
 
@@ -190,6 +208,13 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
       border-color: var(--pool-color);
       background-color: var(--pool-color);
       color: var(--on-pool-color);
+
+      @media (forced-colors: active) {
+        border-color: SelectedItem;
+        background-color: SelectedItem;
+        color: SelectedItemText;
+        forced-color-adjust: none;
+      }
     }
   }
 
