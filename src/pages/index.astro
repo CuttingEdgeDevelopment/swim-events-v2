@@ -2,17 +2,16 @@
 import DefaultLayout from '@layouts/DefaultLayout.astro'
 import EventCardTemplate from '@components/EventCardTemplate.astro'
 import { Icon } from 'astro-icon/components'
-import { Button, Heading, Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-astro-components'
+import { Button, Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-astro-components'
 ---
 
 <DefaultLayout title="Swim Events Countdown" useTitleTemplate={false}>
-  <section class="mt-8 mb-12">
-    <div class="space-content container">
-      <Heading level="h1">Swim Events Countdown</Heading>
-      <div id="today" hidden>
-        <p class="text-xl font-semibold">Happy <span data-field="weekday"></span>!</p>
-        <p class="italic">Current date: <span data-field="date"></span></p>
-      </div>
+  <section class="intro">
+    <div class="container">
+      <p id="today" class="intro__date" hidden>
+        Happy <span data-field="weekday"></span> · <time data-field="date"></time>
+      </p>
+      <h1 class="intro__title">Swim Events Countdown</h1>
     </div>
   </section>
 
@@ -65,6 +64,20 @@ import { Button, Heading, Notification, Tabs, TabsList, TabsPanel, TabsTab } fro
 </script>
 
 <style lang="scss">
+  .intro {
+    padding-block: var(--space-l) var(--space-m);
+  }
+
+  .intro__date {
+    color: var(--text-muted-color);
+  }
+
+  .intro__title {
+    margin-block-start: var(--space-3xs);
+    font-size: var(--font-size-4);
+    line-height: 1.15;
+  }
+
   .events-toolbar {
     display: flex;
     flex-wrap: wrap;

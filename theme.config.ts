@@ -2,7 +2,7 @@ import { defineThemeConfig } from '@utils/defineThemeConfig'
 import previewImage from '@assets/img/countdown-screenshot.png'
 
 export default defineThemeConfig({
-  name: 'Swim Events Countdown',
+  name: 'Swim Events',
   id: 'swim-events-countdown',
   seo: {
     title: 'Swim Events Countdown',

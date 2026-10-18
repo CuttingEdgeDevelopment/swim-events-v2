@@ -1,9 +1,10 @@
-import { eventTiming, localToday, parseCalendarDate, toLocalDate, type CalendarDate } from '../lib/countdown'
+import { eventTiming, isoDate, localToday, parseCalendarDate, toLocalDate, type CalendarDate } from '../lib/countdown'
 import { fetchEvents, type SwimEvent } from '../lib/supabase'
 
 const LOCALE = 'en-US'
 const longDate = new Intl.DateTimeFormat(LOCALE, { weekday: 'long', month: 'long', day: '2-digit', year: 'numeric' })
-const headerDate = new Intl.DateTimeFormat(LOCALE, { month: 'long', day: '2-digit', year: 'numeric' })
+// Day-month-year, as in the design ("18 October 2026")
+const headerDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 const weekday = new Intl.DateTimeFormat(LOCALE, { weekday: 'long' })
 const time = new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit' })
 
@@ -30,8 +31,10 @@ function renderToday(today: CalendarDate): void {
   if (!container) return
 
   const date = toLocalDate(today)
+  const dateField = field<HTMLTimeElement>(container, 'date')
   field(container, 'weekday').textContent = weekday.format(date)
-  field(container, 'date').textContent = headerDate.format(date)
+  dateField.textContent = headerDate.format(date)
+  dateField.dateTime = isoDate(today)
   container.hidden = false
 }
 

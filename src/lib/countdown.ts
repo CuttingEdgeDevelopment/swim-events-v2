@@ -31,6 +31,11 @@ export function daysBetween(from: CalendarDate, to: CalendarDate): number {
   return dayNumber(to) - dayNumber(from)
 }
 
+/** A calendar date as `YYYY-MM-DD`, for `<time datetime>`. */
+export function isoDate({ year, month, day }: CalendarDate): string {
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
 /** A calendar date as a local `Date` at midnight, for formatting only. */
 export function toLocalDate({ year, month, day }: CalendarDate): Date {
   return new Date(year, month - 1, day)

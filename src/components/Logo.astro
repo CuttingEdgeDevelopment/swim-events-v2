@@ -19,7 +19,7 @@ interface Props {
 const { loading = 'eager' }: Props = Astro.props
 ---
 
-<Link href="/" class="flex items-center gap-2">
+<Link href="/" class="logo">
   {
     themeConfig.logo && (
       <Image
@@ -32,5 +32,30 @@ const { loading = 'eager' }: Props = Astro.props
       />
     )
   }
-  <span class="text-sm font-bold sm:text-lg">{themeConfig.name}</span>
+  {
+    !themeConfig.logo && (
+      <svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M3 12c3 0 3-3 6.5-3s3.5 3 6.5 3 3-3 6.5-3 3.5 3 6.5 3" />
+        <path d="M3 21c3 0 3-3 6.5-3s3.5 3 6.5 3 3-3 6.5-3 3.5 3 6.5 3" />
+      </svg>
+    )
+  }
+  <span>{themeConfig.name}</span>
 </Link>
+
+<style lang="scss" is:global>
+  #main-navigation .logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    color: var(--text-color);
+    font-weight: 700;
+    font-size: var(--font-size-1);
+    text-decoration: none;
+
+    svg {
+      flex-shrink: 0;
+      color: var(--pool-color);
+    }
+  }
+</style>
