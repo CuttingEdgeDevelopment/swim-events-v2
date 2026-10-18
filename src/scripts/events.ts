@@ -1,8 +1,16 @@
-import { eventTiming, isoDate, localToday, parseCalendarDate, toLocalDate, type CalendarDate } from '../lib/countdown'
+import {
+  dateRangeSeparator,
+  eventTiming,
+  formatDateRange,
+  isoDate,
+  localToday,
+  toLocalDate,
+  type CalendarDate,
+} from '../lib/countdown'
+import { listLocation } from '../lib/locations'
 import { fetchEvents, type SwimEvent } from '../lib/supabase'
 
 const LOCALE = 'en-US'
-const longDate = new Intl.DateTimeFormat(LOCALE, { weekday: 'long', month: 'long', day: '2-digit', year: 'numeric' })
 // Day-month-year, as in the design ("18 October 2026")
 const headerDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 const weekday = new Intl.DateTimeFormat(LOCALE, { weekday: 'long' })
@@ -12,10 +20,6 @@ let events: SwimEvent[] = []
 
 function field<T extends HTMLElement = HTMLElement>(root: Element | DocumentFragment, name: string): T {
   return root.querySelector<T>(`[data-field="${name}"]`)!
-}
-
-function formatDate(value: string): string {
-  return longDate.format(toLocalDate(parseCalendarDate(value)))
 }
 
 function setStatus(state: 'loading' | 'ready' | 'error', text: string): void {
@@ -38,48 +42,77 @@ function renderToday(today: CalendarDate): void {
   container.hidden = false
 }
 
-function renderCard(template: HTMLTemplateElement, event: SwimEvent, today: CalendarDate): DocumentFragment {
-  const card = template.content.cloneNode(true) as DocumentFragment
-  const item = card.querySelector('li')!
-  const timing = eventTiming(event.dateStart, event.dateEnd, today)
-  const isPast = timing.kind === 'past'
+/** "2–7 Dec 2026" as one or two `<time>` elements. */
+function fillDates(container: HTMLElement, event: SwimEvent): void {
+  const range = formatDateRange(event.dateStart, event.dateEnd)
+  const end = document.createElement('time')
+  end.dateTime = event.dateEnd.slice(0, 10)
+  end.textContent = range.end
 
-  field(card, 'name').textContent = event.name
-  if (event.link) {
-    const link = field<HTMLAnchorElement>(card, 'link')
-    link.href = event.link
-    link.hidden = false
+  if (!range.start) {
+    container.replaceChildren(end)
+    return
   }
 
-  field(card, 'location').textContent = event.location
-  field(card, 'start-label').textContent = isPast ? 'Began' : 'Begins'
-  field(card, 'start').textContent = formatDate(event.dateStart)
-  field(card, 'end-label').textContent = isPast ? 'Ended' : 'Ends'
-  field(card, 'end').textContent = formatDate(event.dateEnd)
+  const start = document.createElement('time')
+  start.dateTime = event.dateStart.slice(0, 10)
+  start.textContent = range.start
+  container.replaceChildren(start, dateRangeSeparator(range), end)
+}
 
+/** The event name, as a link to the event website when there is one. */
+function fillName(root: DocumentFragment, event: SwimEvent): void {
+  const name = field(root, 'name')
+  if (!event.link) {
+    name.textContent = event.name
+    return
+  }
+
+  const link = field<HTMLAnchorElement>(root, 'link')
+  const hint = document.createElement('span')
+  hint.className = 'sr-only'
+  hint.textContent = ' (opens in new tab)'
+  link.href = event.link
+  link.replaceChildren(event.name, hint)
+  link.hidden = false
+  name.remove()
+}
+
+function renderCard(template: HTMLTemplateElement, event: SwimEvent, today: CalendarDate): DocumentFragment {
+  const card = template.content.cloneNode(true) as DocumentFragment
+  const timing = eventTiming(event.dateStart, event.dateEnd, today)
+
+  fillName(card, event)
+  field(card, 'place').textContent = listLocation(event.location)
+  fillDates(field(card, 'dates'), event)
+
+  const badge = field(card, 'badge')
   const number = field(card, 'number')
-  const label = field(card, 'label')
+  const unit = field(card, 'unit')
 
   switch (timing.kind) {
     case 'ongoing':
-      card.querySelector<HTMLElement>('[data-icon="ongoing"]')!.hidden = false
-      label.textContent = 'Ongoing!'
-      item.classList.add('is-live')
+      badge.textContent = 'Ongoing'
+      badge.className = 'badge badge--live event-card__badge'
+      badge.hidden = false
+      field(card, 'countdown').remove()
       break
     case 'today':
-      card.querySelector<HTMLElement>('[data-icon="today"]')!.hidden = false
-      label.textContent = 'Today is the day!'
-      item.classList.add('is-live')
+      badge.textContent = 'Starts today'
+      badge.hidden = false
+      field(card, 'countdown').remove()
       break
     case 'upcoming':
       number.textContent = String(timing.daysToGo)
-      number.hidden = false
-      label.textContent = timing.daysToGo === 1 ? 'day to go' : 'days to go'
+      unit.textContent = timing.daysToGo === 1 ? 'day to go' : 'days to go'
+      if (timing.daysToGo === 1) {
+        badge.textContent = 'Tomorrow'
+        badge.hidden = false
+      }
       break
     case 'past':
       number.textContent = String(timing.daysAgo)
-      number.hidden = false
-      label.textContent = timing.daysAgo === 1 ? 'day ago' : 'days ago'
+      unit.textContent = timing.daysAgo === 1 ? 'day ago' : 'days ago'
       break
   }
 

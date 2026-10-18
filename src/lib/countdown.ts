@@ -54,3 +54,38 @@ export function eventTiming(dateStart: string, dateEnd: string, today: CalendarD
   if (daysToStart === 0) return { kind: 'today' }
   return { kind: 'upcoming', daysToGo: daysToStart }
 }
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+export type DateRangeText = { start: string | null; end: string }
+
+/**
+ * A compact, day-month-year date range: "19 Oct 2026", "2–7 Dec 2026",
+ * "28 Nov – 3 Dec 2026" or "30 Dec 2026 – 2 Jan 2027". `start` is null for
+ * one-day events; otherwise the range reads `${start}–${end}` (or with spaces
+ * around the dash when the start carries a month, see `dateRangeSeparator`).
+ */
+export function formatDateRange(dateStart: string, dateEnd: string): DateRangeText {
+  const start = parseCalendarDate(dateStart)
+  const end = parseCalendarDate(dateEnd)
+  const endText = `${end.day} ${MONTHS[end.month - 1]} ${end.year}`
+
+  if (daysBetween(start, end) <= 0) return { start: null, end: endText }
+  if (start.year !== end.year) return { start: `${start.day} ${MONTHS[start.month - 1]} ${start.year}`, end: endText }
+  if (start.month !== end.month) return { start: `${start.day} ${MONTHS[start.month - 1]}`, end: endText }
+  return { start: String(start.day), end: endText }
+}
+
+/** "–" between plain day numbers ("2–7 Dec"), " – " when the start has a month. */
+export function dateRangeSeparator({ start }: DateRangeText): string {
+  return start && start.includes(' ') ? ' – ' : '–'
+}
+
+/** Which day of a running event `today` is, and how many days it lasts in total. */
+export function eventProgress(dateStart: string, dateEnd: string, today: CalendarDate): { day: number; total: number } {
+  const start = parseCalendarDate(dateStart)
+  return {
+    day: daysBetween(start, today) + 1,
+    total: daysBetween(start, parseCalendarDate(dateEnd)) + 1,
+  }
+}
