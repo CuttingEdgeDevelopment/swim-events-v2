@@ -1,24 +1,40 @@
 ---
 import DefaultLayout from '@layouts/DefaultLayout.astro'
 import EventCardTemplate from '@components/EventCardTemplate.astro'
+import FeaturedEventTemplate from '@components/FeaturedEventTemplate.astro'
 import { Icon } from 'astro-icon/components'
-import { Button, Heading, Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-astro-components'
+import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-astro-components'
 ---
 
 <DefaultLayout title="Swim Events Countdown" useTitleTemplate={false}>
-  <section class="mt-8 mb-12">
-    <div class="space-content container">
-      <Heading level="h1">Swim Events Countdown</Heading>
-      <div id="today" hidden>
-        <p class="text-xl font-semibold">Happy <span data-field="weekday"></span>!</p>
-        <p class="italic">Current date: <span data-field="date"></span></p>
-      </div>
+  <section class="intro">
+    <div class="container">
+      <p id="today" class="intro__date" hidden>
+        Happy <span data-field="weekday"></span> · <time data-field="date"></time>
+      </p>
+      <h1 class="intro__title">Swim Events Countdown</h1>
     </div>
   </section>
 
-  <section class="mb-16" aria-labelledby="events-heading">
+  <div class="container">
+    <section id="featured" class="featured" aria-labelledby="featured-heading" hidden>
+      <h2 id="featured-heading" class="featured__heading">Happening now</h2>
+      <ul id="featured-events" class="featured__list"></ul>
+    </section>
+  </div>
+
+  <section class="all-events" aria-labelledby="events-heading">
     <div class="container">
-      <h2 id="events-heading" class="sr-only">Events</h2>
+      <div class="events-toolbar">
+        <h2 id="events-heading" class="events-toolbar__heading">All events</h2>
+        <div class="events-toolbar__actions">
+          <p id="events-status" role="status" class="events-status sr-only">Loading events…</p>
+          <button id="refresh-events" type="button" class="refresh-button" aria-disabled="true">
+            <Icon aria-hidden="true" name="lucide:refresh-cw" size="1.1rem" />
+            <span data-field="label">Loading events…</span>
+          </button>
+        </div>
+      </div>
 
       <noscript>
         <Notification type="warning">
@@ -26,35 +42,40 @@ import { Button, Heading, Notification, Tabs, TabsList, TabsPanel, TabsTab } fro
         </Notification>
       </noscript>
 
-      <div class="events-toolbar">
-        <p id="events-status" role="status" class="events-status" data-state="loading">
-          <span data-field="text">Loading events</span><span class="loading-dots" aria-hidden="true"
-            ><span>.</span><span>.</span><span>.</span></span
-          >
-        </p>
-        <Button id="refresh-events" size="sm" variant="outlined" animateOnHover animationType="rotate">
-          <Icon aria-hidden="true" name="lucide:refresh-cw" size="1.25rem" />
-          Update events
-        </Button>
-      </div>
-
-      <Tabs>
-        <TabsList aria-label="Events">
-          <TabsTab id="upcoming-tab" controls="upcoming-panel" selected>Upcoming events</TabsTab>
-          <TabsTab id="past-tab" controls="past-panel">Past events</TabsTab>
+      <Tabs class="event-tabs">
+        <TabsList aria-label="Events" class="event-tabs__list">
+          <TabsTab id="upcoming-tab" controls="upcoming-panel" class="event-tabs__tab" selected>
+            Upcoming <span class="event-tabs__count" data-count="upcoming"></span>
+          </TabsTab>
+          <TabsTab id="past-tab" controls="past-panel" class="event-tabs__tab">
+            Past <span class="event-tabs__count" data-count="past"></span>
+          </TabsTab>
         </TabsList>
-        <TabsPanel id="upcoming-panel" labelledby="upcoming-tab" selected>
-          <ul id="upcoming-events" class="event-list"></ul>
-          <p class="event-list-empty" hidden>No upcoming events.</p>
+        <TabsPanel id="upcoming-panel" labelledby="upcoming-tab" class="event-tabs__panel" selected>
+          <ul id="upcoming-events" class="event-list">
+            {
+              [1, 2].map(() => (
+                <li class="event-placeholder" aria-hidden="true">
+                  <span class="event-placeholder__lines">
+                    <span class="event-placeholder__bar" />
+                    <span class="event-placeholder__bar event-placeholder__bar--soft" />
+                  </span>
+                  <span class="event-placeholder__number" />
+                </li>
+              ))
+            }
+          </ul>
+          <div class="event-message" data-message="upcoming" hidden></div>
         </TabsPanel>
-        <TabsPanel id="past-panel" labelledby="past-tab">
-          <ul id="past-events" class="event-list"></ul>
-          <p class="event-list-empty" hidden>No past events.</p>
+        <TabsPanel id="past-panel" labelledby="past-tab" class="event-tabs__panel">
+          <ul id="past-events" class="event-list past-list"></ul>
+          <div class="event-message" data-message="past" hidden></div>
         </TabsPanel>
       </Tabs>
     </div>
   </section>
 
+  <FeaturedEventTemplate />
   <EventCardTemplate />
 </DefaultLayout>
 
@@ -65,6 +86,26 @@ import { Button, Heading, Notification, Tabs, TabsList, TabsPanel, TabsTab } fro
 </script>
 
 <style lang="scss">
+  @use '../assets/scss/base/breakpoint' as *;
+
+  .intro {
+    padding-block: var(--space-l) var(--space-m);
+  }
+
+  .intro__date {
+    color: var(--text-muted-color);
+  }
+
+  .intro__title {
+    margin-block-start: var(--space-3xs);
+    font-size: var(--font-size-4);
+    line-height: 1.15;
+  }
+
+  .all-events {
+    margin-block-end: var(--space-2xl);
+  }
+
   .events-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -74,46 +115,181 @@ import { Button, Heading, Notification, Tabs, TabsList, TabsPanel, TabsTab } fro
     margin-block-end: var(--space-m);
   }
 
-  .events-status {
-    font-style: italic;
+  .events-toolbar__heading {
+    font-size: var(--font-size-2);
+  }
 
-    &[data-state='error'] {
-      color: light-dark(#b91c1c, #f87171);
-      font-style: normal;
-      font-weight: 700;
+  .events-toolbar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-s);
+  }
+
+  .refresh-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    cursor: pointer;
+    border: 2px solid var(--pool-color);
+    border-radius: 999px;
+    background-color: var(--surface-color);
+    padding-inline: var(--space-s);
+    min-block-size: 44px;
+    color: var(--pool-color);
+    font-weight: 700;
+    font-size: var(--font-size--1);
+
+    &:hover {
+      background-color: var(--badge-info-bg);
     }
 
-    &:not([data-state='loading']) .loading-dots {
+    // aria-disabled rather than disabled, so keyboard focus stays on the button
+    &[aria-disabled='true'] {
+      cursor: not-allowed;
+      border-color: var(--disabled-border);
+      background-color: var(--disabled-bg);
+      color: var(--text-muted-color);
+
+      @media (forced-colors: active) {
+        border-color: GrayText;
+        color: GrayText;
+      }
+    }
+  }
+
+  // The only motion on the page: the refresh icon turns while events load
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html:not(.reduce-motion)) .refresh-button[aria-disabled='true'] :global(svg) {
+      animation: refresh-spin 1.2s linear infinite;
+    }
+  }
+
+  @keyframes refresh-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  // Upcoming / Past as a pill-shaped switch without a box around the panel
+  :global(.event-tabs__list) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4xs);
+    margin-block-end: var(--space-m);
+    border: 1px solid var(--border-strong-color);
+    border-radius: 999px;
+    background-color: var(--surface-color);
+    padding: var(--space-4xs);
+
+    @include breakpoint(m) {
+      display: inline-flex;
+    }
+  }
+
+  :global(.event-tabs__tab.tab) {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-color: transparent;
+    padding: 0 var(--space-xs);
+    min-block-size: 44px;
+    color: var(--text-color);
+    font-size: var(--font-size-0);
+
+    @include breakpoint(m) {
+      padding-inline: var(--space-m);
+    }
+
+    &:hover {
+      box-shadow: none;
+      background-color: var(--badge-info-bg);
+      color: var(--text-color);
+    }
+
+    &[aria-selected='true'] {
+      box-shadow: none;
+      // the border keeps the selected tab visible in forced-colours mode
+      border-color: var(--pool-color);
+      background-color: var(--pool-color);
+      color: var(--on-pool-color);
+
+      @media (forced-colors: active) {
+        border-color: SelectedItem;
+        background-color: SelectedItem;
+        color: SelectedItemText;
+        forced-color-adjust: none;
+      }
+    }
+  }
+
+  :global(.event-tabs__count) {
+    font-weight: 400;
+  }
+
+  :global(.event-tabs__panel.tab-panel) {
+    border: none;
+    padding: 0;
+    min-block-size: 0;
+  }
+
+  .events-status {
+    color: var(--text-muted-color);
+  }
+
+  // Message in a panel when there is nothing to list (no events yet, or loading failed)
+  :global(.event-message) {
+    align-self: stretch;
+    border: 1px dashed var(--disabled-border);
+    border-radius: var(--radius-h);
+    background-color: var(--surface-color);
+    padding: var(--space-l) var(--space-m);
+    color: var(--text-muted-color);
+
+    &[hidden] {
       display: none;
     }
-  }
 
-  .loading-dots span {
-    display: inline-block;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .loading-dots span {
-      animation: loading-dot 1s infinite;
-    }
-
-    .loading-dots span:nth-child(2) {
-      animation-delay: 0.15s;
-    }
-
-    .loading-dots span:nth-child(3) {
-      animation-delay: 0.3s;
+    :global(strong) {
+      color: var(--text-color);
     }
   }
 
-  @keyframes loading-dot {
-    0%,
-    100% {
-      translate: 0 0;
-    }
+  // Grey cards while the first load runs, no animation
+  .event-placeholder {
+    display: flex;
+    align-items: center;
+    gap: var(--space-m);
+    border: 1px solid var(--border-subtle-color);
+    border-radius: var(--radius-h);
+    background-color: var(--surface-color);
+    padding: var(--space-m);
+  }
 
-    50% {
-      translate: 0 -0.25em;
-    }
+  .event-placeholder__lines {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .event-placeholder__bar {
+    border-radius: var(--radius-s);
+    background-color: var(--placeholder-color);
+    inline-size: min(20rem, 70%);
+    block-size: 1.1rem;
+  }
+
+  .event-placeholder__bar--soft {
+    background-color: var(--placeholder-soft-color);
+    inline-size: min(28rem, 90%);
+    block-size: 0.9rem;
+  }
+
+  .event-placeholder__number {
+    flex-shrink: 0;
+    border-radius: var(--radius-m);
+    background-color: var(--placeholder-color);
+    inline-size: 4.5rem;
+    block-size: 3rem;
   }
 </style>

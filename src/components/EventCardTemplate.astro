@@ -1,124 +1,223 @@
 ---
-import { Icon } from 'astro-icon/components'
-
 /**
  * EventCardTemplate Component
  *
- * @description An HTML <template> for one event card. Events are loaded in the browser,
- * so `src/scripts/events.ts` clones and fills this template for each event.
+ * @description HTML <template>s for one card in the Upcoming list and one row in the Past
+ * list. Events are loaded in the browser, so `src/scripts/events.ts` clones and fills them.
  */
 ---
 
 <template id="event-card-template">
   <li class="event-card">
     <div class="event-card__info">
-      <h3 class="event-card__name text-xl font-semibold">
+      <h3 class="event-card__name">
         <span data-field="name"></span>
-        {/* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid -- href is set by src/scripts/events.ts */}
-        <a data-field="link" target="_blank" rel="noopener noreferrer" hidden>
-          <Icon aria-hidden="true" name="lucide:external-link" size="1.25rem" />
-          <span class="sr-only">Event website (opens in new tab)</span>
-        </a>
+        {
+          /* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content -- href and name are set by src/scripts/events.ts */
+        }
+        <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
       </h3>
-      <dl class="event-card__details">
-        <div><dt>Location</dt> <dd data-field="location"></dd></div>
-        <div><dt data-field="start-label">Begins</dt> <dd data-field="start"></dd></div>
-        <div><dt data-field="end-label">Ends</dt> <dd data-field="end"></dd></div>
-      </dl>
+      <p class="event-card__meta">
+        <span data-field="place"></span><span class="event-card__sep" aria-hidden="true"> · </span><span
+          class="event-card__dates"
+          data-field="dates"></span>
+      </p>
     </div>
-    <div class="event-card__countdown">
-      <span data-icon="ongoing" hidden><Icon aria-hidden="true" name="lucide:flame" size="4rem" /></span>
-      <span data-icon="today" hidden><Icon aria-hidden="true" name="lucide:rocket" size="4rem" /></span>
-      <p class="event-card__number" data-field="number" hidden></p>
-      <p class="font-bold" data-field="label"></p>
+    <span class="badge badge--info event-card__badge" data-field="badge" hidden></span>
+    <p class="event-card__countdown" data-field="countdown">
+      <span class="event-card__number" data-field="number"></span>
+      <span class="event-card__unit" data-field="unit"></span>
+    </p>
+  </li>
+</template>
+
+<template id="past-row-template">
+  <li class="past-row">
+    <div class="past-row__info">
+      <h3 class="past-row__name">
+        <span data-field="name"></span>
+        {
+          /* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content -- href and name are set by src/scripts/events.ts */
+        }
+        <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
+      </h3>
+      <p class="event-card__meta">
+        <span data-field="place"></span> · <span class="past-row__dates" data-field="dates"></span>
+      </p>
     </div>
+    <p class="past-row__finished" data-field="finished"></p>
   </li>
 </template>
 
 <style lang="scss" is:global>
+  @use '../assets/scss/base/breakpoint' as *;
+
   .event-list {
     display: flex;
     flex-direction: column;
-    align-self: stretch;
-    gap: var(--space-s);
-    margin-block-start: var(--space-m);
+    gap: var(--space-xs);
+    margin: 0;
     padding: 0;
     inline-size: 100%;
     list-style: none;
   }
 
   .event-card {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'countdown badge'
+      'info info';
     align-items: center;
-    gap: var(--space-m);
-    border: 1px solid var(--foreground-color);
-    border-radius: var(--radius-l);
-    padding: var(--space-m);
+    gap: var(--space-2xs) var(--space-m);
+    border: 1px solid var(--border-subtle-color);
+    border-radius: var(--radius-h);
+    background-color: var(--surface-color);
+    padding: var(--space-s) var(--space-m);
 
-    &.is-live {
-      border-width: 3px;
+    @include breakpoint(m) {
+      grid-template-columns: 1fr auto auto;
+      grid-template-areas: 'info badge countdown';
     }
+  }
+
+  .event-card__info {
+    grid-area: info;
+    min-inline-size: 0;
   }
 
   .event-card__name {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2xs);
-    margin-block-end: var(--space-2xs);
+    font-size: var(--font-size-1);
+    line-height: 1.3;
+  }
 
-    a {
-      display: inline-flex;
-      color: var(--link-color);
+  .event-card__meta {
+    color: var(--text-muted-color);
+  }
+
+  // Place and dates on separate lines on small screens, one line from tablet up
+  .event-card__sep {
+    display: none;
+
+    @include breakpoint(m) {
+      display: inline;
     }
   }
 
-  .event-card__details {
-    margin: 0;
+  .event-card__dates {
+    display: block;
 
-    dt,
-    dd {
+    @include breakpoint(m) {
       display: inline;
     }
+  }
 
-    dt {
-      font-weight: 600;
-
-      &::after {
-        content: ': ';
-      }
-    }
-
-    dd {
-      margin: 0;
-    }
+  .event-card__badge {
+    grid-area: badge;
+    justify-self: end;
   }
 
   .event-card__countdown {
-    min-inline-size: 10rem;
-    text-align: center;
+    grid-area: countdown;
+    line-height: 1.1;
 
-    span[data-icon] {
-      display: flex;
-      justify-content: center;
-    }
-
-    span[data-icon][hidden] {
-      display: none;
-    }
-
-    [data-icon='ongoing'] {
-      color: light-dark(#b91c1c, #f87171);
-    }
-
-    [data-icon='today'] {
-      color: light-dark(#15803d, #4ade80);
+    @include breakpoint(m) {
+      min-inline-size: 8rem;
+      text-align: end;
     }
   }
 
   .event-card__number {
-    font-size: 4.5rem;
-    line-height: 1;
+    color: var(--pool-color);
+    font-weight: 700;
+    font-size: var(--font-size-5);
+    font-variant-numeric: tabular-nums;
+
+    @include breakpoint(m) {
+      display: block;
+      font-size: var(--font-size-6);
+    }
+  }
+
+  .event-card__unit {
+    color: var(--text-muted-color);
+  }
+
+  // Past events: one bordered list with dividers, no big numbers
+  .past-list {
+    gap: 0;
+    border: 1px solid var(--border-subtle-color);
+    border-radius: var(--radius-h);
+    background-color: var(--surface-color);
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  .past-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    padding: var(--space-s) var(--space-m);
+
+    & + & {
+      border-block-start: 1px solid var(--border-subtle-color);
+    }
+
+    @include breakpoint(m) {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-m);
+    }
+  }
+
+  .past-row__info {
+    flex-grow: 1;
+    min-inline-size: 0;
+  }
+
+  .past-row__name {
+    font-size: var(--font-size-1);
+    line-height: 1.3;
+  }
+
+  // keep "24–26 Jul 2026" together when the line wraps
+  .past-row__dates {
+    white-space: nowrap;
+  }
+
+  .past-row__finished {
+    color: var(--text-muted-color);
+
+    @include breakpoint(m) {
+      white-space: nowrap;
+    }
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: var(--space-4xs) var(--space-xs);
+    font-weight: 700;
+    font-size: var(--font-size--1);
+    white-space: nowrap;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .badge--info {
+    background-color: var(--badge-info-bg);
+    color: var(--badge-info-text);
+  }
+
+  .badge--live {
+    background-color: var(--badge-live-bg);
+    color: var(--badge-live-text);
   }
 </style>

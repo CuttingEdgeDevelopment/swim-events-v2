@@ -16,8 +16,13 @@ const currentYear = new Date().getFullYear()
   </section>
 </footer>
 
-<style>
-  footer section {
-    border-top: 1px solid var(--border-color-subtle);
+<style lang="scss">
+  // The lane-rope stripe above the footer (src/assets/scss/base/_swim.scss) replaces the border
+  footer {
+    --lane-gap: var(--surface-color);
+
+    background-color: var(--surface-color);
+    color: var(--text-muted-color);
+    font-size: 1rem; // a step under the 18px body text, as in the mockup
   }
 </style>

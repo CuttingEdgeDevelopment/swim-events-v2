@@ -1,0 +1,197 @@
+---
+import { Icon } from 'astro-icon/components'
+
+/**
+ * FeaturedEventTemplate Component
+ *
+ * @description HTML <template>s for the blue cards above the event lists: one per running
+ * event under "Happening now", or a single "Next up" card when nothing is running.
+ * `src/scripts/events.ts` clones and fills them.
+ */
+---
+
+<template id="featured-live-template">
+  <li class="featured-card">
+    <div class="featured-card__top">
+      <span class="badge badge--live" data-field="badge-ongoing" hidden>
+        <Icon aria-hidden="true" name="lucide:flame" size="1.1em" />
+        Ongoing
+      </span>
+      <span class="badge badge--info" data-field="badge-today" hidden>
+        <Icon aria-hidden="true" name="lucide:rocket" size="1.1em" />
+        Starts today
+      </span>
+      <p class="featured-card__progress" data-field="progress">
+        <span aria-hidden="true"
+          ><span class="featured-card__number" data-field="day"></span> / <span data-field="total"></span> days</span
+        >
+        <span class="sr-only" data-field="progress-text"></span>
+      </p>
+    </div>
+    <div>
+      <h3 class="featured-card__name">
+        <span data-field="name"></span>
+        {
+          /* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content -- href and name are set by src/scripts/events.ts */
+        }
+        <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
+      </h3>
+      <p class="featured-card__meta" data-field="place"></p>
+      <p class="featured-card__meta" data-field="dates"></p>
+    </div>
+  </li>
+</template>
+
+<template id="featured-next-template">
+  <li class="featured-card featured-card--next">
+    <div>
+      <h3 class="featured-card__name">
+        <span data-field="name"></span>
+        {
+          /* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content -- href and name are set by src/scripts/events.ts */
+        }
+        <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
+      </h3>
+      <p class="featured-card__meta" data-field="place"></p>
+      <p class="featured-card__meta" data-field="dates"></p>
+    </div>
+    <p class="featured-card__countdown">
+      <span class="featured-card__number" data-field="number"></span>
+      <span class="featured-card__unit" data-field="unit"></span>
+    </p>
+  </li>
+</template>
+
+<style lang="scss" is:global>
+  @use '../assets/scss/base/breakpoint' as *;
+
+  .featured {
+    margin-block-end: var(--space-xl);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .featured__heading {
+    margin-block-end: var(--space-s);
+    font-size: var(--font-size-2);
+  }
+
+  .featured__list {
+    display: grid;
+    gap: var(--space-m);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @include breakpoint(m) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &.is-next {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .featured-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+    border: 1px solid var(--featured-border);
+    border-radius: var(--radius-h);
+    background-color: var(--featured-bg);
+    padding: var(--space-m);
+    color: var(--featured-text);
+
+    a.event-link {
+      color: var(--featured-text);
+      text-decoration-color: var(--featured-text);
+
+      &:focus-visible {
+        background-color: #ffffff;
+        color: #0b4f94;
+      }
+    }
+  }
+
+  .featured-card__top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-s);
+
+    .badge {
+      font-size: var(--font-size-0);
+    }
+  }
+
+  .featured-card__progress {
+    color: var(--featured-muted);
+    font-size: var(--font-size-1);
+    line-height: 1;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .featured-card__number {
+    color: var(--featured-text);
+    font-weight: 700;
+    font-size: var(--font-size-6);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .featured-card__name {
+    font-size: var(--font-size-2);
+    line-height: 1.2;
+  }
+
+  .featured-card__meta {
+    color: var(--featured-muted);
+  }
+
+  .featured-card--next {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+
+    @include breakpoint(m) {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: var(--space-l);
+      padding: var(--space-l) var(--space-xl);
+    }
+
+    .featured-card__name {
+      font-size: var(--font-size-3);
+    }
+
+    .featured-card__meta {
+      font-size: var(--font-size-1);
+    }
+  }
+
+  .featured-card__countdown {
+    line-height: 1;
+
+    @include breakpoint(m) {
+      text-align: end;
+    }
+
+    .featured-card__number {
+      font-size: var(--font-size-7);
+
+      @include breakpoint(m) {
+        display: block;
+        font-size: var(--font-size-8);
+      }
+    }
+  }
+
+  .featured-card__unit {
+    color: var(--featured-muted);
+    font-size: var(--font-size-1);
+  }
+</style>
