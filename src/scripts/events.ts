@@ -15,20 +15,69 @@ const LOCALE = 'en-US'
 // Day-month-year, as in the design ("18 October 2026")
 const headerDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 const weekday = new Intl.DateTimeFormat(LOCALE, { weekday: 'long' })
-const time = new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit' })
+const time = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' })
+
+const BUTTON_LABEL = 'Update events'
+const LOADING_TEXT = 'Loading events…'
 
 let events: SwimEvent[] = []
+let loaded = false
+let loading = false
+let updatedAt = ''
 
 function field<T extends HTMLElement = HTMLElement>(root: Element | DocumentFragment, name: string): T {
   return root.querySelector<T>(`[data-field="${name}"]`)!
 }
 
-function setStatus(state: 'loading' | 'ready' | 'error', text: string): void {
+/** Announce `text` through the status line beside the button, without showing it. */
+function announce(text: string): void {
   const status = document.getElementById('events-status')
   if (!status) return
 
-  status.dataset.state = state
-  field(status, 'text').textContent = text
+  status.classList.add('sr-only')
+  status.textContent = text
+}
+
+/** Show "Updated at 10:00" in the status line, read out as "Events updated at 10:00". */
+function setUpdatedStatus(): void {
+  const status = document.getElementById('events-status')
+  if (!status) return
+
+  const prefix = document.createElement('span')
+  prefix.className = 'sr-only'
+  prefix.textContent = 'Events '
+  status.classList.remove('sr-only')
+  status.replaceChildren(prefix, `Updated at ${updatedAt}`)
+}
+
+function setLoading(isLoading: boolean): void {
+  const button = document.getElementById('refresh-events')
+  loading = isLoading
+  if (button) {
+    button.setAttribute('aria-disabled', String(isLoading))
+    field(button, 'label').textContent = isLoading ? LOADING_TEXT : BUTTON_LABEL
+  }
+}
+
+/** The message in a panel when it has nothing to list; `null` hides it. */
+function setMessage(name: 'upcoming' | 'past', content: Node[] | null): void {
+  const message = document.querySelector<HTMLElement>(`[data-message="${name}"]`)
+  if (!message) return
+
+  message.replaceChildren(...(content ?? []))
+  message.hidden = content === null
+}
+
+function paragraph(...content: (string | Node)[]): HTMLParagraphElement {
+  const p = document.createElement('p')
+  p.append(...content)
+  return p
+}
+
+function strong(text: string): HTMLElement {
+  const element = document.createElement('strong')
+  element.textContent = text
+  return element
 }
 
 function renderToday(today: CalendarDate): void {
@@ -142,9 +191,6 @@ function renderList(
   if (!list || !template) return
 
   list.replaceChildren(...listEvents.map((event) => renderer(template, event, today)))
-
-  const empty = list.parentElement?.querySelector<HTMLElement>('.event-list-empty')
-  if (empty) empty.hidden = listEvents.length > 0
 }
 
 function renderLiveCard(template: HTMLTemplateElement, event: SwimEvent, today: CalendarDate): DocumentFragment {
@@ -235,18 +281,45 @@ function render(): void {
   renderList('past-events', 'past-row-template', renderPastRow, past, today)
   setCount('upcoming', upcomingList.length)
   setCount('past', past.length)
+  setMessage(
+    'upcoming',
+    upcomingList.length > 0
+      ? null
+      : [
+          paragraph(strong('No upcoming events right now.')),
+          paragraph('New meets show up here as soon as they’re added. Recent results are under Past.'),
+        ],
+  )
+  setMessage('past', past.length > 0 ? null : [paragraph('No past events yet.')])
 }
 
-async function loadEvents(isRefresh: boolean): Promise<void> {
-  setStatus('loading', isRefresh ? 'Updating events' : 'Loading events')
+/** First load failed: no warning, just a way to try again. */
+function renderLoadFailed(): void {
+  const message = () => [paragraph('No events to show yet. Use ', strong(BUTTON_LABEL), ' to try loading them again.')]
+  document.getElementById('upcoming-events')?.replaceChildren()
+  setMessage('upcoming', message())
+  setMessage('past', message())
+  announce('No events to show yet. Use Update events to try loading them again.')
+}
+
+async function loadEvents(): Promise<void> {
+  if (loading) return
+  setLoading(true)
+  announce(LOADING_TEXT)
 
   try {
     events = await fetchEvents()
+    loaded = true
+    updatedAt = time.format(new Date())
     render()
-    setStatus('ready', `Events updated at ${time.format(new Date())}.`)
+    setUpdatedStatus()
   } catch (error) {
     console.error('Error fetching events:', error)
-    setStatus('error', "Couldn't load the events. Check your connection and try “Update events” again.")
+    // Keep what is already on screen; only an empty page gets a message
+    if (loaded) setUpdatedStatus()
+    else renderLoadFailed()
+  } finally {
+    setLoading(false)
   }
 }
 
@@ -255,7 +328,7 @@ export function initEvents(): void {
   if (!refreshButton || refreshButton.dataset.bound) return
 
   refreshButton.dataset.bound = 'true'
-  refreshButton.addEventListener('click', () => loadEvents(true))
+  refreshButton.addEventListener('click', () => loadEvents())
   renderToday(localToday())
-  loadEvents(false)
+  loadEvents()
 }

@@ -12,7 +12,9 @@
     <div class="event-card__info">
       <h3 class="event-card__name">
         <span data-field="name"></span>
-        {/* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid -- href is set by src/scripts/events.ts */}
+        {
+          /* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content -- href and name are set by src/scripts/events.ts */
+        }
         <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
       </h3>
       <p class="event-card__meta">
@@ -34,7 +36,9 @@
     <div class="past-row__info">
       <h3 class="past-row__name">
         <span data-field="name"></span>
-        {/* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid -- href is set by src/scripts/events.ts */}
+        {
+          /* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content -- href and name are set by src/scripts/events.ts */
+        }
         <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
       </h3>
       <p class="event-card__meta">
@@ -60,10 +64,10 @@
 
   .event-card {
     display: grid;
+    grid-template-columns: 1fr auto;
     grid-template-areas:
       'countdown badge'
       'info info';
-    grid-template-columns: 1fr auto;
     align-items: center;
     gap: var(--space-2xs) var(--space-m);
     border: 1px solid var(--border-subtle-color);
@@ -72,8 +76,8 @@
     padding: var(--space-s) var(--space-m);
 
     @include breakpoint(m) {
-      grid-template-areas: 'info badge countdown';
       grid-template-columns: 1fr auto auto;
+      grid-template-areas: 'info badge countdown';
     }
   }
 

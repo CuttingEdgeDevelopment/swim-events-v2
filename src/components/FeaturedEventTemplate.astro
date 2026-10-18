@@ -31,7 +31,9 @@ import { Icon } from 'astro-icon/components'
     <div>
       <h3 class="featured-card__name">
         <span data-field="name"></span>
-        {/* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid -- href is set by src/scripts/events.ts */}
+        {
+          /* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content -- href and name are set by src/scripts/events.ts */
+        }
         <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
       </h3>
       <p class="featured-card__meta" data-field="place"></p>
@@ -45,7 +47,9 @@ import { Icon } from 'astro-icon/components'
     <div>
       <h3 class="featured-card__name">
         <span data-field="name"></span>
-        {/* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid -- href is set by src/scripts/events.ts */}
+        {
+          /* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content -- href and name are set by src/scripts/events.ts */
+        }
         <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
       </h3>
       <p class="featured-card__meta" data-field="place"></p>
