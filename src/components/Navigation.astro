@@ -409,6 +409,13 @@ const hasMenu = themeConfig.navigation.items.length > 0
         color: var(--pool-color);
         box-shadow: none;
       }
+
+      // DarkMode swaps the outline for a box-shadow; use the lane-red ring like everything else
+      &:focus-visible {
+        outline: 3px solid var(--outline-color);
+        outline-offset: 2px;
+        box-shadow: 0 0 0 2px var(--focus-halo);
+      }
     }
 
     .darkmode-toggle:not(.theme-toggle) {

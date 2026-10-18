@@ -191,10 +191,14 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
     border: 2px solid transparent;
     border-radius: 999px;
     background-color: transparent;
-    padding: 0 var(--space-m);
+    padding: 0 var(--space-xs);
     min-block-size: 44px;
     color: var(--text-color);
     font-size: var(--font-size-0);
+
+    @include breakpoint(m) {
+      padding-inline: var(--space-m);
+    }
 
     &:hover {
       box-shadow: none;
