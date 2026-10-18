@@ -1,5 +1,6 @@
 import {
   dateRangeSeparator,
+  eventProgress,
   eventTiming,
   formatDateRange,
   isoDate,
@@ -130,14 +131,84 @@ function renderList(listId: string, listEvents: SwimEvent[], today: CalendarDate
   if (empty) empty.hidden = listEvents.length > 0
 }
 
+function renderLiveCard(template: HTMLTemplateElement, event: SwimEvent, today: CalendarDate): DocumentFragment {
+  const card = template.content.cloneNode(true) as DocumentFragment
+  const isToday = eventTiming(event.dateStart, event.dateEnd, today).kind === 'today'
+  const { day, total } = eventProgress(event.dateStart, event.dateEnd, today)
+
+  field(card, isToday ? 'badge-today' : 'badge-ongoing').hidden = false
+  // One-day meets only show the badge, "1 / 1 days" says nothing
+  if (total > 1) {
+    field(card, 'day').textContent = String(day)
+    field(card, 'total').textContent = String(total)
+    field(card, 'progress-text').textContent = `Day ${day} of ${total}`
+  } else {
+    field(card, 'progress').hidden = true
+  }
+
+  fillName(card, event)
+  field(card, 'place').textContent = event.location.trim()
+  fillDates(field(card, 'dates'), event)
+  return card
+}
+
+function renderNextCard(template: HTMLTemplateElement, event: SwimEvent, daysToGo: number): DocumentFragment {
+  const card = template.content.cloneNode(true) as DocumentFragment
+
+  fillName(card, event)
+  field(card, 'place').textContent = event.location.trim()
+  fillDates(field(card, 'dates'), event)
+  field(card, 'number').textContent = String(daysToGo)
+  field(card, 'unit').textContent = daysToGo === 1 ? 'day to go' : 'days to go'
+  return card
+}
+
+/**
+ * The blue cards above the lists: every running event under "Happening now", else the
+ * nearest upcoming event under "Next up", else nothing. Returns the upcoming events
+ * that still belong in the Upcoming list, so no event is shown twice.
+ */
+function renderFeatured(live: SwimEvent[], upcoming: SwimEvent[], today: CalendarDate): SwimEvent[] {
+  const section = document.getElementById('featured')
+  const list = document.getElementById('featured-events')
+  const heading = document.getElementById('featured-heading')
+  const liveTemplate = document.getElementById('featured-live-template') as HTMLTemplateElement | null
+  const nextTemplate = document.getElementById('featured-next-template') as HTMLTemplateElement | null
+  if (!section || !list || !heading || !liveTemplate || !nextTemplate) return upcoming
+
+  if (live.length > 0) {
+    heading.textContent = 'Happening now'
+    list.classList.remove('is-next')
+    list.replaceChildren(...live.map((event) => renderLiveCard(liveTemplate, event, today)))
+    section.hidden = false
+    return upcoming
+  }
+
+  const [next, ...rest] = upcoming
+  if (!next) {
+    list.replaceChildren()
+    section.hidden = true
+    return upcoming
+  }
+
+  const timing = eventTiming(next.dateStart, next.dateEnd, today)
+  heading.textContent = 'Next up'
+  list.classList.add('is-next')
+  list.replaceChildren(renderNextCard(nextTemplate, next, timing.kind === 'upcoming' ? timing.daysToGo : 0))
+  section.hidden = false
+  return rest
+}
+
 function render(): void {
   const today = localToday()
-  const upcoming = events.filter((event) => eventTiming(event.dateStart, event.dateEnd, today).kind !== 'past')
+  const kindOf = (event: SwimEvent) => eventTiming(event.dateStart, event.dateEnd, today).kind
+  const live = events.filter((event) => ['ongoing', 'today'].includes(kindOf(event)))
+  const upcoming = events.filter((event) => kindOf(event) === 'upcoming')
   // Most recently finished first
-  const past = events.filter((event) => eventTiming(event.dateStart, event.dateEnd, today).kind === 'past').reverse()
+  const past = events.filter((event) => kindOf(event) === 'past').reverse()
 
   renderToday(today)
-  renderList('upcoming-events', upcoming, today)
+  renderList('upcoming-events', renderFeatured(live, upcoming, today), today)
   renderList('past-events', past, today)
 }
 
