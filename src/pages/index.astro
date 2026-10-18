@@ -1,0 +1,18 @@
+---
+import DefaultLayout from '@layouts/DefaultLayout.astro'
+import { Heading, Notification } from 'accessible-astro-components'
+---
+
+<DefaultLayout title="Swim Events Countdown" useTitleTemplate={false}>
+  <section class="my-24">
+    <div class="space-content container">
+      <Heading level="h1">Swim Events Countdown</Heading>
+      <p class="text-2xl">
+        This is a barebones accessible Astro foundation with the core layout, navigation, footer, and styles intact.
+      </p>
+      <Notification type="info">
+        <p>Start by editing this page, theme.config.ts, and the navigation to match your project.</p>
+      </Notification>
+    </div>
+  </section>
+</DefaultLayout>
