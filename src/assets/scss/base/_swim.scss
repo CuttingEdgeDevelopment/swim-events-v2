@@ -1,0 +1,62 @@
+// Swim Events "Lane lines" colours.
+//
+// The template derives its shades from the brand colours in theme.config.ts, so
+// the exact values below are pinned here instead. Every text pair was checked
+// against WCAG 2 (see v2-design/PLAN.md in the project files): body text is at
+// least 6.5:1, badges at least 6.5:1, the focus ring at least 4.9:1.
+
+:root {
+  // surfaces and text
+  --page-color: light-dark(#f6f9fc, #0b1622);
+  --surface-color: light-dark(#ffffff, #122334);
+  --text-color: light-dark(#14212e, #e6eef6);
+  --text-muted-color: light-dark(#4b5b6b, #a7b6c6);
+  --border-subtle-color: light-dark(#d5dee8, #2a3d52);
+  --border-strong-color: light-dark(#4b5b6b, #a7b6c6);
+
+  // pool blue
+  --pool-color: light-dark(#0b5cad, #7cc4ff);
+  --pool-hover-color: light-dark(#083f78, #b3dcff);
+  --on-pool-color: light-dark(#ffffff, #0b1622);
+
+  // featured cards (Happening now, Next up)
+  --featured-bg: light-dark(#0b4f94, #164f86);
+  --featured-border: light-dark(#0b4f94, #3b75ad);
+  --featured-text: #ffffff;
+  --featured-muted: #d6e8fa;
+
+  // lane ropes and state badges
+  --lane-red: light-dark(#c8102e, #f87171);
+  --lane-gap: light-dark(#ffffff, var(--page-color));
+  --badge-live-bg: light-dark(#fdecea, #3a1512);
+  --badge-live-text: light-dark(#a61b12, #fda29b);
+  --badge-info-bg: light-dark(#e5f0fb, #0f2a45);
+  --badge-info-text: light-dark(#0b4f94, #b3dcff);
+
+  // loading and disabled
+  --placeholder-color: light-dark(#e3e9ef, #1c3047);
+  --placeholder-soft-color: light-dark(#edf1f5, #182a3e);
+  --disabled-bg: light-dark(#eef2f6, #16283b);
+  --disabled-border: light-dark(#8494a5, #5c6f83);
+
+  // focus: lane-red ring with a halo so it also shows on the blue cards
+  --focus-halo: light-dark(#ffffff, #0b1622);
+
+  // template tokens mapped onto the pinned colours
+  --foreground-color: var(--text-color);
+  --background-color: var(--page-color);
+  --icon-color: var(--text-color);
+  --link-color: var(--pool-color);
+  --link-hover-color: var(--pool-hover-color);
+  --border-color: var(--border-strong-color);
+  --border-color-subtle: var(--border-subtle-color);
+  --text-decoration-color: var(--pool-color);
+  --text-decoration-color-hover: var(--pool-hover-color);
+  --outline-color: var(--lane-red);
+}
+
+*:focus-visible {
+  outline: 3px solid var(--outline-color);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--focus-halo);
+}
