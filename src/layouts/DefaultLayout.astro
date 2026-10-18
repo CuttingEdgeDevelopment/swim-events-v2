@@ -63,7 +63,7 @@ const imageUrl = new URL(imagePath, Astro.site).href
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
     <!-- favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
 
     <!-- theme colors from config -->
     <style
@@ -124,6 +124,20 @@ const imageUrl = new URL(imagePath, Astro.site).href
       <slot />
     </main>
     <Footer />
+    {
+      import.meta.env.PROD && (
+        <>
+          <script is:inline async src="https://scripts.simpleanalyticscdn.com/latest.js" />
+          <noscript>
+            <img
+              src="https://queue.simpleanalyticscdn.com/noscript.gif"
+              alt=""
+              referrerpolicy="no-referrer-when-downgrade"
+            />
+          </noscript>
+        </>
+      )
+    }
     <style lang="scss" is:global>
       @use 'scss/base/mixins' as *;
 

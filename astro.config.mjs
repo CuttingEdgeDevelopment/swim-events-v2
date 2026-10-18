@@ -35,8 +35,13 @@ const viteConfig = {
 
 export default defineConfig({
   compressHTML: true,
-  site: 'https://example.com',
+  site: 'https://nme-countdown.netlify.app',
   integrations: [compress(), icon(), sitemap()],
   vite: viteConfig,
-
+  env: {
+    schema: {
+      PUBLIC_SUPABASE_URL: envField.string({ context: 'client', access: 'public', url: true }),
+      PUBLIC_SUPABASE_KEY: envField.string({ context: 'client', access: 'public' }),
+    },
+  },
 })

@@ -1,31 +1,25 @@
 import { defineThemeConfig } from '@utils/defineThemeConfig'
-import previewImage from '@assets/img/social-preview-image.png'
-import logoImage from '@assets/img/logo.svg'
+import previewImage from '@assets/img/countdown-screenshot.png'
 
 export default defineThemeConfig({
   name: 'Swim Events Countdown',
   id: 'swim-events-countdown',
   seo: {
     title: 'Swim Events Countdown',
-    description: 'Swim Events Countdown is a stripped-back accessible Astro foundation.',
+    description: 'Countdowns to upcoming swimming events.',
+    author: 'Nicolas Messer',
     image: previewImage,
   },
-  logo: logoImage,
+  logo: null,
   colors: {
-    primary: '#d648ff',
-    secondary: '#00d1b7',
+    primary: '#4f46e5',
+    secondary: '#0ea5e9',
     neutral: '#b9bec4',
     outline: '#ff4500',
   },
   navigation: {
     darkmode: true,
-    items: [
-      {
-              type: 'link',
-              label: 'Home',
-              href: '/',
-            }
-    ],
+    items: [],
   },
   socials: [],
 })
