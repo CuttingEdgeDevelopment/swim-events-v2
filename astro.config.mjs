@@ -35,7 +35,7 @@ const viteConfig = {
 
 export default defineConfig({
   compressHTML: true,
-  site: 'https://nme-countdown.netlify.app',
+  site: 'https://swim-events.com',
   integrations: [compress(), icon(), sitemap()],
   vite: viteConfig,
   env: {
