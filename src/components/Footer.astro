@@ -1,0 +1,23 @@
+---
+import { Link } from 'accessible-astro-components'
+
+const currentYear = new Date().getFullYear()
+---
+
+<footer>
+  <section class="py-8">
+    <div class="container">
+      <p>
+        Copyright &copy; 2025-{currentYear}
+        <Link href="https://cutting-edge.dev/" isExternal>Cutting Edge Development Studio</Link>
+        <span class="ms-1">by Nicolas Messer</span>
+      </p>
+    </div>
+  </section>
+</footer>
+
+<style>
+  footer section {
+    border-top: 1px solid var(--border-color-subtle);
+  }
+</style>
