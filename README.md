@@ -5,7 +5,10 @@ A small site that shows countdowns to upcoming swimming events. This is version 
 lives in [CuttingEdgeDevelopment/swim-events](https://github.com/CuttingEdgeDevelopment/swim-events).
 
 ### Preview
-![Screenshot of the Countdown Application.](src/assets/img/countdown-screenshot.png)
+<img src="src/assets/img/countdown-screenshot.png" alt="Swim Events Countdown in light mode on a desktop browser, with the next event and the upcoming list." width="640">
+<img src="src/assets/img/countdown-screenshot-mobile.png" alt="The same page on a phone." width="180">
+
+<img src="src/assets/img/countdown-screenshot-dark.png" alt="The page in dark mode." width="640">
 
 ### Technologies & Tools
 Astro, Tailwind CSS, [Accessible Astro Components](https://github.com/incluud/accessible-astro-components), Supabase,
