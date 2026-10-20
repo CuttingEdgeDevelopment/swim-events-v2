@@ -86,15 +86,16 @@ add-to-calendar-button,
 body > .add-to-calendar {
   --font: var(--font-body);
   --accent-color: var(--pool-color);
-  --btn-background: var(--surface-color);
-  --btn-hover-background: var(--badge-info-bg);
-  --btn-border: var(--border-strong-color);
-  --btn-hover-border: var(--pool-color);
+  // a quiet icon + text action, no box, so it doesn't compete with the event name link
+  --btn-background: transparent;
+  --btn-hover-background: transparent;
+  --btn-border: transparent;
+  --btn-hover-border: transparent;
   --btn-text: var(--pool-color);
-  --btn-hover-text: var(--pool-color);
-  --btn-border-radius: 999px;
+  --btn-hover-text: var(--pool-hover-color);
+  --btn-border-radius: var(--radius-s);
   --btn-font-weight: 700;
-  --btn-padding-x: var(--space-s);
+  --btn-padding-x: 2px;
   --btn-shadow: none;
   --btn-hover-shadow: none;
   --btn-active-shadow: none;
@@ -121,8 +122,15 @@ add-to-calendar-button {
 }
 
 add-to-calendar-button::part(atcb-button) {
+  justify-content: flex-start;
   box-sizing: border-box;
+  min-inline-size: 0;
   min-block-size: 44px;
+}
+
+add-to-calendar-button::part(atcb-button):hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 add-to-calendar-button::part(atcb-button):focus-visible,
@@ -132,14 +140,10 @@ body > .add-to-calendar::part(atcb-list-item):focus-visible {
   box-shadow: 0 0 0 2px var(--focus-halo);
 }
 
-// On the blue featured cards: white outline button
+// White on the blue featured cards
 .featured-card add-to-calendar-button {
-  --btn-background: transparent;
-  --btn-hover-background: #ffffff;
-  --btn-border: var(--featured-muted);
-  --btn-hover-border: #ffffff;
   --btn-text: var(--featured-text);
-  --btn-hover-text: #0b4f94;
+  --btn-hover-text: var(--featured-text);
 }
 
 // Lane-rope stripes, the only decoration: 6px above the header, 4px above the footer.
@@ -172,10 +176,6 @@ body > footer::before {
 // Windows High Contrast and other forced-colours modes drop backgrounds, so states
 // that rely on a fill get system colours instead
 @media (forced-colors: active) {
-  add-to-calendar-button::part(atcb-button) {
-    border-color: ButtonText;
-  }
-
   .event-link:focus-visible {
     box-shadow: none;
     background-color: Highlight;

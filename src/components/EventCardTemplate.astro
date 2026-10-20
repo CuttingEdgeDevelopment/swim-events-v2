@@ -106,8 +106,10 @@
     }
   }
 
+  // the button's 44px target already leaves space above it
   .event-card__calendar {
     grid-area: calendar;
+    margin-block-start: calc(var(--space-2xs) * -1);
   }
 
   .event-card__info {
