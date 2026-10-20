@@ -5,9 +5,6 @@ const LOCATION_PATTERN = /^(.+?)\s*\(([A-Z]{3})\)\s*$/
 /** Some older rows use the World Aquatics form "IOC, Country, City", e.g. "HUN, Hungary, Budapest". */
 const LEGACY_PATTERN = /^([A-Z]{3}),\s*.+,\s*([^,]+?)\s*$/
 
-/** IOC code of the home country: "Switzerland" and "Outside Switzerland" in the filters. */
-export const HOME_COUNTRY = 'SUI'
-
 export type ParsedLocation = { city: string; code: string; country: string } | null
 
 /** City and country of a stored location, or null when it isn't in a known format. */

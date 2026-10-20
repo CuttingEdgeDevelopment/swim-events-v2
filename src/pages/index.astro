@@ -48,13 +48,22 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
           <input id="filter-query" name="q" type="search" placeholder="Event, city or country" autocomplete="off" />
         </div>
         <div class="event-filters__field">
-          <label for="filter-country">Country</label>
-          <select id="filter-country" name="country">
-            <option value="">All countries</option>
-            <option value="home">Switzerland</option>
-            <option value="abroad">Outside Switzerland</option>
-            <optgroup label="Other countries" data-field="countries"></optgroup>
+          <label for="filter-period">When</label>
+          <select id="filter-period" name="when">
+            <option value="">Any time</option>
+            <option value="7d">Next 7 days</option>
+            <option value="30d">Next 30 days</option>
+            <option value="3m">Next 3 months</option>
+            <option value="custom">Choose dates…</option>
           </select>
+        </div>
+        <div class="event-filters__field event-filters__field--date" data-field="custom-dates" hidden>
+          <label for="filter-from">From</label>
+          <input id="filter-from" name="from" type="date" />
+        </div>
+        <div class="event-filters__field event-filters__field--date" data-field="custom-dates" hidden>
+          <label for="filter-to">To</label>
+          <input id="filter-to" name="to" type="date" />
         </div>
         <button type="reset" class="event-filters__clear" hidden>Clear filters</button>
       </form>
@@ -250,7 +259,7 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
     min-block-size: 0;
   }
 
-  // Search and country above the tabs; they stack on small screens
+  // Search and time period above the tabs; they stack on small screens
   .event-filters {
     display: flex;
     flex-wrap: wrap;
@@ -284,6 +293,10 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
       color: var(--text-color);
       font: inherit;
     }
+  }
+
+  .event-filters__field--date[hidden] {
+    display: none;
   }
 
   .event-filters__field--search {

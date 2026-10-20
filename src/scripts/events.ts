@@ -10,14 +10,15 @@ import {
   type CalendarDate,
 } from '../lib/countdown'
 import {
-  eventCountries,
   filtersFromUrl,
   filtersToUrl,
   groupBy,
   hasFilters,
   matchesFilters,
   NO_FILTERS,
+  periodRange,
   type EventFilters,
+  type Period,
 } from '../lib/filters'
 import { listLocation } from '../lib/locations'
 import { fetchEvents, type SwimEvent } from '../lib/supabase'
@@ -301,7 +302,7 @@ function setCount(name: string, count: number): void {
 function render(): void {
   const today = localToday()
   const kindOf = (event: SwimEvent) => eventTiming(event.dateStart, event.dateEnd, today).kind
-  const shown = events.filter((event) => matchesFilters(event, filters))
+  const shown = events.filter((event) => matchesFilters(event, filters, today))
   const filtered = hasFilters(filters)
   const live = shown.filter((event) => ['ongoing', 'today'].includes(kindOf(event)))
   const upcoming = shown.filter((event) => kindOf(event) === 'upcoming')
@@ -313,7 +314,7 @@ function render(): void {
   renderToday(today)
   renderGroups('upcoming-events', 'event-card-template', renderCard, upcomingList, startMonth, today)
   renderGroups('past-events', 'past-row-template', renderPastRow, past, startYear, today)
-  renderFilterSummary(shown.length)
+  renderFilterSummary(shown.length, today)
   setCount('upcoming', upcomingList.length)
   setCount('past', past.length)
   setMessage(
@@ -321,7 +322,7 @@ function render(): void {
     upcomingList.length > 0
       ? null
       : filtered
-        ? [paragraph(strong('No upcoming events match your filters.')), paragraph('Try another search or country.')]
+        ? [paragraph(strong('No upcoming events match your filters.')), paragraph('Try another search or time period.')]
         : [
             paragraph(strong('No upcoming events right now.')),
             paragraph('New meets show up here as soon as they’re added. Recent results are under Past.'),
@@ -333,39 +334,54 @@ function render(): void {
   )
 }
 
-/** "Showing 6 of 95 events" while a filter is set, empty otherwise. */
-function renderFilterSummary(shownCount: number): void {
+/** "Showing 6 of 95 events · 20 Oct – 19 Jan 2027" while a filter is set, empty otherwise. */
+function renderFilterSummary(shownCount: number, today: CalendarDate): void {
   const summary = document.getElementById('filter-summary')
   const clear = document.querySelector<HTMLButtonElement>('#event-filters button[type="reset"]')
   const filtered = hasFilters(filters)
   if (clear) clear.hidden = !filtered
   if (!summary) return
 
-  const text = filtered ? `Showing ${shownCount} of ${events.length} events` : ''
+  const { from, to } = periodRange(filters, today)
+  const period =
+    from && to
+      ? ` · ${rangeText(from, to)}`
+      : from
+        ? ` · from ${rangeText(from, from)}`
+        : to
+          ? ` · until ${rangeText(to, to)}`
+          : ''
+  const text = filtered ? `Showing ${shownCount} of ${events.length} events${period}` : ''
   if (summary.textContent !== text) summary.textContent = text
 }
 
-/** The country select: the fixed choices, then every other country that has an event. */
-function renderCountryOptions(): void {
-  const select = document.getElementById('filter-country') as HTMLSelectElement | null
-  const group = select?.querySelector('[data-field="countries"]')
-  if (!select || !group) return
-
-  const countries = eventCountries(events)
-  group.replaceChildren(...countries.map(({ code, country }) => new Option(country, code)))
-  // A country from a shared link that has no events (any more) falls back to all countries
-  const known = ['', 'home', 'abroad', ...countries.map(({ code }) => code)]
-  if (!known.includes(filters.country)) filters = { ...filters, country: '' }
-  select.value = filters.country
+/** "20–26 Oct 2026" as plain text. */
+function rangeText(from: string, to: string): string {
+  const range = formatDateRange(from, to)
+  return range.start ? `${range.start}${dateRangeSeparator(range)}${range.end}` : range.end
 }
 
 function readFilterForm(form: HTMLFormElement): EventFilters {
   const data = new FormData(form)
-  return { query: String(data.get('q') ?? ''), country: String(data.get('country') ?? '') }
+  return {
+    query: String(data.get('q') ?? ''),
+    period: String(data.get('when') ?? '') as Period,
+    from: String(data.get('from') ?? ''),
+    to: String(data.get('to') ?? ''),
+  }
 }
 
-function applyFilters(next: EventFilters): void {
+/** The From and To dates only show for "Choose dates…"; each limits the other. */
+function syncDateFields(form: HTMLFormElement): void {
+  const custom = filters.period === 'custom'
+  form.querySelectorAll<HTMLElement>('[data-field="custom-dates"]').forEach((field) => (field.hidden = !custom))
+  ;(form.elements.namedItem('from') as HTMLInputElement).max = filters.to
+  ;(form.elements.namedItem('to') as HTMLInputElement).min = filters.from
+}
+
+function applyFilters(form: HTMLFormElement, next: EventFilters): void {
   filters = next
+  syncDateFields(form)
   history.replaceState(history.state, '', filtersToUrl(new URL(location.href), filters))
   if (loaded) render()
 }
@@ -377,14 +393,17 @@ function initFilters(): void {
   filters = filtersFromUrl(new URL(location.href))
   const query = form.elements.namedItem('q') as HTMLInputElement
   query.value = filters.query
-  // The country options arrive with the events; renderCountryOptions selects it then
+  ;(form.elements.namedItem('when') as HTMLSelectElement).value = filters.period
+  ;(form.elements.namedItem('from') as HTMLInputElement).value = filters.from
+  ;(form.elements.namedItem('to') as HTMLInputElement).value = filters.to
+  syncDateFields(form)
 
   form.addEventListener('submit', (event) => event.preventDefault())
-  form.addEventListener('input', () => applyFilters(readFilterForm(form)))
+  form.addEventListener('input', () => applyFilters(form, readFilterForm(form)))
   // reset clears the fields after this event, so read them on the next tick
   form.addEventListener('reset', () => {
     setTimeout(() => {
-      applyFilters(NO_FILTERS)
+      applyFilters(form, NO_FILTERS)
       query.focus()
     })
   })
@@ -408,7 +427,6 @@ async function loadEvents(): Promise<void> {
     events = await fetchEvents()
     loaded = true
     updatedAt = time.format(new Date())
-    renderCountryOptions()
     render()
     setUpdatedStatus()
   } catch (error) {
