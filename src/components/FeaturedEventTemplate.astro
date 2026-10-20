@@ -39,6 +39,7 @@ import { Icon } from 'astro-icon/components'
       <p class="featured-card__meta" data-field="place"></p>
       <p class="featured-card__meta" data-field="dates"></p>
     </div>
+    <div class="featured-card__calendar" data-field="calendar"></div>
   </li>
 </template>
 
@@ -59,6 +60,7 @@ import { Icon } from 'astro-icon/components'
       <span class="featured-card__number" data-field="number"></span>
       <span class="featured-card__unit" data-field="unit"></span>
     </p>
+    <div class="featured-card__calendar" data-field="calendar"></div>
   </li>
 </template>
 
@@ -153,15 +155,27 @@ import { Icon } from 'astro-icon/components'
     color: var(--featured-muted);
   }
 
+  // pushed to the bottom so buttons line up when two cards share a row
+  .featured-card__calendar {
+    margin-block-start: auto;
+  }
+
   .featured-card--next {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
 
+    // the button under the name and dates, the countdown on the right
     @include breakpoint(m) {
+      grid-template-rows: auto auto;
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
-      gap: var(--space-l);
+      gap: var(--space-s) var(--space-l);
       padding: var(--space-l) var(--space-xl);
+
+      .featured-card__countdown {
+        grid-row: 1 / span 2;
+        grid-column: 2;
+      }
     }
 
     .featured-card__name {

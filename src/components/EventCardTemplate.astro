@@ -3,7 +3,8 @@
  * EventCardTemplate Component
  *
  * @description HTML <template>s for one card in the Upcoming list and one row in the Past
- * list. Events are loaded in the browser, so `src/scripts/events.ts` clones and fills them.
+ * list. Events are loaded in the browser, so `src/scripts/events.ts` clones and fills them,
+ * including the "Add to calendar" button on upcoming cards.
  */
 ---
 
@@ -28,6 +29,7 @@
       <span class="event-card__number" data-field="number"></span>
       <span class="event-card__unit" data-field="unit"></span>
     </p>
+    <div class="event-card__calendar" data-field="calendar"></div>
   </li>
 </template>
 
@@ -86,7 +88,8 @@
     grid-template-columns: 1fr auto;
     grid-template-areas:
       'countdown badge'
-      'info info';
+      'info info'
+      'calendar calendar';
     align-items: center;
     gap: var(--space-2xs) var(--space-m);
     border: 1px solid var(--border-subtle-color);
@@ -94,10 +97,17 @@
     background-color: var(--surface-color);
     padding: var(--space-s) var(--space-m);
 
+    // the button sits under the place and dates, the countdown stays centred on the right
     @include breakpoint(m) {
       grid-template-columns: 1fr auto auto;
-      grid-template-areas: 'info badge countdown';
+      grid-template-areas:
+        'info badge countdown'
+        'calendar badge countdown';
     }
+  }
+
+  .event-card__calendar {
+    grid-area: calendar;
   }
 
   .event-card__info {
