@@ -42,6 +42,24 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
         </Notification>
       </noscript>
 
+      <form id="event-filters" class="event-filters" role="search" aria-label="Filter events">
+        <div class="event-filters__field event-filters__field--search">
+          <label for="filter-query">Search</label>
+          <input id="filter-query" name="q" type="search" placeholder="Event, city or country" autocomplete="off" />
+        </div>
+        <div class="event-filters__field">
+          <label for="filter-country">Country</label>
+          <select id="filter-country" name="country">
+            <option value="">All countries</option>
+            <option value="home">Switzerland</option>
+            <option value="abroad">Outside Switzerland</option>
+            <optgroup label="Other countries" data-field="countries"></optgroup>
+          </select>
+        </div>
+        <button type="reset" class="event-filters__clear" hidden>Clear filters</button>
+      </form>
+      <p id="filter-summary" role="status" class="event-filters__summary"></p>
+
       <Tabs class="event-tabs">
         <TabsList aria-label="Events" class="event-tabs__list">
           <TabsTab id="upcoming-tab" controls="upcoming-panel" class="event-tabs__tab" selected>
@@ -52,7 +70,7 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
           </TabsTab>
         </TabsList>
         <TabsPanel id="upcoming-panel" labelledby="upcoming-tab" class="event-tabs__panel" selected>
-          <ul id="upcoming-events" class="event-list">
+          <ul id="upcoming-events" class="event-groups">
             {
               [1, 2].map(() => (
                 <li class="event-placeholder" aria-hidden="true">
@@ -68,7 +86,7 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
           <div class="event-message" data-message="upcoming" hidden></div>
         </TabsPanel>
         <TabsPanel id="past-panel" labelledby="past-tab" class="event-tabs__panel">
-          <ul id="past-events" class="event-list past-list"></ul>
+          <ul id="past-events" class="event-groups"></ul>
           <div class="event-message" data-message="past" hidden></div>
         </TabsPanel>
       </Tabs>
@@ -230,6 +248,74 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
     border: none;
     padding: 0;
     min-block-size: 0;
+  }
+
+  // Search and country above the tabs; they stack on small screens
+  .event-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--space-s);
+  }
+
+  .event-filters__field {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    gap: var(--space-4xs);
+    min-inline-size: min(100%, 12rem);
+
+    @include breakpoint(m) {
+      flex-grow: 0;
+    }
+
+    label {
+      font-weight: 700;
+      font-size: var(--font-size--1);
+    }
+
+    input,
+    select {
+      border: 1px solid var(--border-strong-color);
+      border-radius: var(--radius-m);
+      background-color: var(--surface-color);
+      padding-inline: var(--space-xs);
+      min-block-size: 44px;
+      color: var(--text-color);
+      font: inherit;
+    }
+  }
+
+  .event-filters__field--search {
+    @include breakpoint(m) {
+      flex-basis: 20rem;
+    }
+  }
+
+  .event-filters__clear {
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding-inline: var(--space-2xs);
+    min-block-size: 44px;
+    color: var(--pool-color);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+
+    &:hover {
+      color: var(--pool-hover-color);
+    }
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .event-filters__summary {
+    margin-block: var(--space-xs) var(--space-m);
+    min-block-size: 1.5em;
+    color: var(--text-muted-color);
   }
 
   .events-status {
