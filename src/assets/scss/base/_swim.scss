@@ -78,6 +78,74 @@
   }
 }
 
+// "Add to calendar" (add-to-calendar-button web component). Its styles live in a shadow
+// root, but custom properties set here win over its own, so it follows the site colours
+// in light and dark mode; ::part() reaches the button and list items for size and focus.
+// The calendar list opens in a separate `.add-to-calendar` element at the end of <body>.
+add-to-calendar-button,
+body > .add-to-calendar {
+  --font: var(--font-body);
+  --accent-color: var(--pool-color);
+  // a quiet icon + text action, no box, so it doesn't compete with the event name link
+  --btn-background: transparent;
+  --btn-hover-background: transparent;
+  --btn-border: transparent;
+  --btn-hover-border: transparent;
+  --btn-text: var(--pool-color);
+  --btn-hover-text: var(--pool-hover-color);
+  --btn-border-radius: var(--radius-s);
+  --btn-font-weight: 700;
+  --btn-padding-x: 2px;
+  --btn-shadow: none;
+  --btn-hover-shadow: none;
+  --btn-active-shadow: none;
+  --list-background: var(--surface-color);
+  --list-border-color: var(--border-subtle-color);
+  --list-hover-background: var(--badge-info-bg);
+  --list-text: var(--text-color);
+  --list-hover-text: var(--text-color);
+  --list-close-background: var(--placeholder-color);
+  --list-close-text: var(--text-color);
+  --modal-text: var(--text-color);
+  --modal-background: var(--surface-color);
+  --modal-btn-background: var(--surface-color);
+  --modal-btn-hover-background: var(--badge-info-bg);
+  --modal-btn-border: var(--border-subtle-color);
+  --modal-btn-hover-text: var(--text-color);
+  --modal-btn-secondary-text: var(--text-muted-color);
+  --overlay-background: hsl(210deg 50% 8% / 0.6);
+}
+
+add-to-calendar-button {
+  display: block;
+  font-size: var(--font-size--1);
+}
+
+add-to-calendar-button::part(atcb-button) {
+  justify-content: flex-start;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  min-block-size: 44px;
+}
+
+add-to-calendar-button::part(atcb-button):hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+add-to-calendar-button::part(atcb-button):focus-visible,
+body > .add-to-calendar::part(atcb-list-item):focus-visible {
+  outline: 3px solid var(--outline-color);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--focus-halo);
+}
+
+// White on the blue featured cards
+.featured-card add-to-calendar-button {
+  --btn-text: var(--featured-text);
+  --btn-hover-text: var(--featured-text);
+}
+
 // Lane-rope stripes, the only decoration: 6px above the header, 4px above the footer.
 // Pseudo-elements are never read out, and the stripes go in forced-colours mode.
 @mixin lane-rope($size) {

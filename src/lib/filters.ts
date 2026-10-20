@@ -79,7 +79,7 @@ export function matchesFilters(event: SwimEvent, filters: EventFilters, today: C
 }
 
 function toPeriod(value: string | null): Period {
-  return (PERIODS as readonly string[]).includes(value ?? '') ? (value as Period) : ''
+  return value && (PERIODS as readonly string[]).includes(value) ? (value as Period) : ''
 }
 
 /** Filters from the page URL (`?q=basel&when=30d`), so a filtered list can be shared. */

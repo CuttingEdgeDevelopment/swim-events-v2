@@ -32,6 +32,7 @@ const time = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digi
 
 const BUTTON_LABEL = 'Update events'
 const LOADING_TEXT = 'Loading events…'
+const CALENDARS = "['apple','google','ical','ms365','outlookcom','yahoo']"
 
 let events: SwimEvent[] = []
 let loaded = false
@@ -142,6 +143,42 @@ function fillName(root: DocumentFragment, event: SwimEvent): void {
   name.remove()
 }
 
+/** The site's dark mode is a class on `<html>`, which the calendar button doesn't know about. */
+const calendarLightMode = () => (document.documentElement.classList.contains('darkmode') ? 'dark' : 'light')
+
+// The add-to-calendar-button script is only fetched once there is a button to show
+let calendarScript: Promise<unknown> | null = null
+
+/**
+ * An "Add to calendar" button (add-to-calendar-button web component) for an all-day event.
+ * Screen readers hear "Add to calendar: <event name>", so every button has its own name.
+ */
+function fillCalendar(container: HTMLElement, event: SwimEvent): void {
+  calendarScript ??= import('add-to-calendar-button')
+
+  const button = document.createElement('add-to-calendar-button')
+  const attributes: Record<string, string> = {
+    name: event.name,
+    'start-date': event.dateStart.slice(0, 10),
+    'end-date': event.dateEnd.slice(0, 10),
+    location: listLocation(event.location),
+    // the same id every time, so adding an event again updates it instead of duplicating it
+    uid: `swim-events-${event.id}`,
+    options: CALENDARS,
+    // sentence case, for the button and the heading of the calendar list
+    'custom-labels': JSON.stringify({ 'label.addtocalendar': 'Add to calendar' }),
+    'list-style': 'modal',
+    'light-mode': calendarLightMode(),
+    'ics-file-name': event.name,
+    'hide-branding': '',
+    'hide-rich-data': '',
+  }
+  if (event.link) attributes.description = `Event website: [url]${event.link}[/url]`
+
+  for (const [name, value] of Object.entries(attributes)) button.setAttribute(name, value)
+  container.replaceChildren(button)
+}
+
 function renderCard(template: HTMLTemplateElement, event: SwimEvent, today: CalendarDate): DocumentFragment {
   const card = template.content.cloneNode(true) as DocumentFragment
   const timing = eventTiming(event.dateStart, event.dateEnd, today)
@@ -149,6 +186,7 @@ function renderCard(template: HTMLTemplateElement, event: SwimEvent, today: Cale
   fillName(card, event)
   field(card, 'place').textContent = listLocation(event.location)
   fillDates(field(card, 'dates'), event)
+  fillCalendar(field(card, 'calendar'), event)
 
   const badge = field(card, 'badge')
   const number = field(card, 'number')
@@ -244,6 +282,7 @@ function renderLiveCard(template: HTMLTemplateElement, event: SwimEvent, today: 
   fillName(card, event)
   field(card, 'place').textContent = event.location.trim()
   fillDates(field(card, 'dates'), event)
+  fillCalendar(field(card, 'calendar'), event)
   return card
 }
 
@@ -253,6 +292,7 @@ function renderNextCard(template: HTMLTemplateElement, event: SwimEvent, daysToG
   fillName(card, event)
   field(card, 'place').textContent = event.location.trim()
   fillDates(field(card, 'dates'), event)
+  fillCalendar(field(card, 'calendar'), event)
   field(card, 'number').textContent = String(daysToGo)
   field(card, 'unit').textContent = daysToGo === 1 ? 'day to go' : 'days to go'
   return card
@@ -445,6 +485,10 @@ export function initEvents(): void {
 
   refreshButton.dataset.bound = 'true'
   refreshButton.addEventListener('click', () => loadEvents())
+  document.addEventListener('darkmode:change', () => {
+    const mode = calendarLightMode()
+    document.querySelectorAll('add-to-calendar-button').forEach((button) => button.setAttribute('light-mode', mode))
+  })
   initFilters()
   renderToday(localToday())
   loadEvents()
