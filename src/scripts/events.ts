@@ -1,5 +1,6 @@
 import {
   dateRangeSeparator,
+  parseCalendarDate,
   eventProgress,
   eventTiming,
   formatDateRange,
@@ -8,6 +9,17 @@ import {
   toLocalDate,
   type CalendarDate,
 } from '../lib/countdown'
+import {
+  filtersFromUrl,
+  filtersToUrl,
+  groupBy,
+  hasFilters,
+  matchesFilters,
+  NO_FILTERS,
+  periodRange,
+  type EventFilters,
+  type Period,
+} from '../lib/filters'
 import { listLocation } from '../lib/locations'
 import { fetchEvents, type SwimEvent } from '../lib/supabase'
 
@@ -15,6 +27,7 @@ const LOCALE = 'en-US'
 // Day-month-year, as in the design ("18 October 2026")
 const headerDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 const weekday = new Intl.DateTimeFormat(LOCALE, { weekday: 'long' })
+const monthYear = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' })
 const time = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' })
 
 const BUTTON_LABEL = 'Update events'
@@ -24,6 +37,7 @@ let events: SwimEvent[] = []
 let loaded = false
 let loading = false
 let updatedAt = ''
+let filters: EventFilters = NO_FILTERS
 
 function field<T extends HTMLElement = HTMLElement>(root: Element | DocumentFragment, name: string): T {
   return root.querySelector<T>(`[data-field="${name}"]`)!
@@ -179,19 +193,38 @@ function renderPastRow(template: HTMLTemplateElement, event: SwimEvent, today: C
 
 type Renderer = (template: HTMLTemplateElement, event: SwimEvent, today: CalendarDate) => DocumentFragment
 
-function renderList(
+/** One list per month or year, each under a heading ("November 2026", "2025"). */
+function renderGroups(
   listId: string,
   templateId: string,
   renderer: Renderer,
   listEvents: SwimEvent[],
+  label: (event: SwimEvent) => string,
   today: CalendarDate,
 ): void {
-  const list = document.getElementById(listId)
+  const container = document.getElementById(listId)
   const template = document.getElementById(templateId) as HTMLTemplateElement | null
-  if (!list || !template) return
+  if (!container || !template) return
 
-  list.replaceChildren(...listEvents.map((event) => renderer(template, event, today)))
+  const isPast = listId === 'past-events'
+  container.replaceChildren(
+    ...groupBy(listEvents, label).map((group) => {
+      const item = document.createElement('li')
+      const heading = document.createElement('h3')
+      const list = document.createElement('ul')
+      item.className = 'event-group'
+      heading.className = 'event-group__heading'
+      heading.textContent = group.label
+      list.className = isPast ? 'event-list past-list' : 'event-list'
+      list.append(...group.items.map((event) => renderer(template, event, today)))
+      item.append(heading, list)
+      return item
+    }),
+  )
 }
+
+const startMonth = (event: SwimEvent) => monthYear.format(toLocalDate(parseCalendarDate(event.dateStart)))
+const startYear = (event: SwimEvent) => event.dateStart.slice(0, 4)
 
 function renderLiveCard(template: HTMLTemplateElement, event: SwimEvent, today: CalendarDate): DocumentFragment {
   const card = template.content.cloneNode(true) as DocumentFragment
@@ -269,28 +302,111 @@ function setCount(name: string, count: number): void {
 function render(): void {
   const today = localToday()
   const kindOf = (event: SwimEvent) => eventTiming(event.dateStart, event.dateEnd, today).kind
-  const live = events.filter((event) => ['ongoing', 'today'].includes(kindOf(event)))
-  const upcoming = events.filter((event) => kindOf(event) === 'upcoming')
+  const shown = events.filter((event) => matchesFilters(event, filters, today))
+  const filtered = hasFilters(filters)
+  const live = shown.filter((event) => ['ongoing', 'today'].includes(kindOf(event)))
+  const upcoming = shown.filter((event) => kindOf(event) === 'upcoming')
   // Most recently finished first
-  const past = events.filter((event) => kindOf(event) === 'past').reverse()
+  const past = shown.filter((event) => kindOf(event) === 'past').reverse()
 
   const upcomingList = renderFeatured(live, upcoming, today)
 
   renderToday(today)
-  renderList('upcoming-events', 'event-card-template', renderCard, upcomingList, today)
-  renderList('past-events', 'past-row-template', renderPastRow, past, today)
+  renderGroups('upcoming-events', 'event-card-template', renderCard, upcomingList, startMonth, today)
+  renderGroups('past-events', 'past-row-template', renderPastRow, past, startYear, today)
+  renderFilterSummary(shown.length, today)
   setCount('upcoming', upcomingList.length)
   setCount('past', past.length)
   setMessage(
     'upcoming',
     upcomingList.length > 0
       ? null
-      : [
-          paragraph(strong('No upcoming events right now.')),
-          paragraph('New meets show up here as soon as they’re added. Recent results are under Past.'),
-        ],
+      : filtered
+        ? [paragraph(strong('No upcoming events match your filters.')), paragraph('Try another search or time period.')]
+        : [
+            paragraph(strong('No upcoming events right now.')),
+            paragraph('New meets show up here as soon as they’re added. Recent results are under Past.'),
+          ],
   )
-  setMessage('past', past.length > 0 ? null : [paragraph('No past events yet.')])
+  setMessage(
+    'past',
+    past.length > 0 ? null : [paragraph(filtered ? 'No past events match your filters.' : 'No past events yet.')],
+  )
+}
+
+/** "Showing 6 of 95 events · 20 Oct – 19 Jan 2027" while a filter is set, empty otherwise. */
+function renderFilterSummary(shownCount: number, today: CalendarDate): void {
+  const summary = document.getElementById('filter-summary')
+  const clear = document.querySelector<HTMLButtonElement>('#event-filters button[type="reset"]')
+  const filtered = hasFilters(filters)
+  if (clear) clear.hidden = !filtered
+  if (!summary) return
+
+  const { from, to } = periodRange(filters, today)
+  const period =
+    from && to
+      ? ` · ${rangeText(from, to)}`
+      : from
+        ? ` · from ${rangeText(from, from)}`
+        : to
+          ? ` · until ${rangeText(to, to)}`
+          : ''
+  const text = filtered ? `Showing ${shownCount} of ${events.length} events${period}` : ''
+  if (summary.textContent !== text) summary.textContent = text
+}
+
+/** "20–26 Oct 2026" as plain text. */
+function rangeText(from: string, to: string): string {
+  const range = formatDateRange(from, to)
+  return range.start ? `${range.start}${dateRangeSeparator(range)}${range.end}` : range.end
+}
+
+function readFilterForm(form: HTMLFormElement): EventFilters {
+  const data = new FormData(form)
+  return {
+    query: String(data.get('q') ?? ''),
+    period: String(data.get('when') ?? '') as Period,
+    from: String(data.get('from') ?? ''),
+    to: String(data.get('to') ?? ''),
+  }
+}
+
+/** The From and To dates only show for "Choose dates…"; each limits the other. */
+function syncDateFields(form: HTMLFormElement): void {
+  const custom = filters.period === 'custom'
+  form.querySelectorAll<HTMLElement>('[data-field="custom-dates"]').forEach((field) => (field.hidden = !custom))
+  ;(form.elements.namedItem('from') as HTMLInputElement).max = filters.to
+  ;(form.elements.namedItem('to') as HTMLInputElement).min = filters.from
+}
+
+function applyFilters(form: HTMLFormElement, next: EventFilters): void {
+  filters = next
+  syncDateFields(form)
+  history.replaceState(history.state, '', filtersToUrl(new URL(location.href), filters))
+  if (loaded) render()
+}
+
+function initFilters(): void {
+  const form = document.getElementById('event-filters') as HTMLFormElement | null
+  if (!form) return
+
+  filters = filtersFromUrl(new URL(location.href))
+  const query = form.elements.namedItem('q') as HTMLInputElement
+  query.value = filters.query
+  ;(form.elements.namedItem('when') as HTMLSelectElement).value = filters.period
+  ;(form.elements.namedItem('from') as HTMLInputElement).value = filters.from
+  ;(form.elements.namedItem('to') as HTMLInputElement).value = filters.to
+  syncDateFields(form)
+
+  form.addEventListener('submit', (event) => event.preventDefault())
+  form.addEventListener('input', () => applyFilters(form, readFilterForm(form)))
+  // reset clears the fields after this event, so read them on the next tick
+  form.addEventListener('reset', () => {
+    setTimeout(() => {
+      applyFilters(form, NO_FILTERS)
+      query.focus()
+    })
+  })
 }
 
 /** First load failed: no warning, just a way to try again. */
@@ -329,6 +445,7 @@ export function initEvents(): void {
 
   refreshButton.dataset.bound = 'true'
   refreshButton.addEventListener('click', () => loadEvents())
+  initFilters()
   renderToday(localToday())
   loadEvents()
 }
