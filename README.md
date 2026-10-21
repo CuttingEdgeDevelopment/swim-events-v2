@@ -46,6 +46,12 @@ Requires Node 24.19 or newer.
 Netlify builds the site using `netlify.toml`. Set `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_KEY` in the site's environment
 variables.
 
+#### Events check
+`.github/workflows/events-check.yml` loads the events once a day (06:00 UTC) the same way the site does. When that fails,
+it opens an "Events failed to load" issue assigned to the site owner, comments on it while the problem lasts, and closes it
+once events load again. It needs the same `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_KEY` as repository variables
+(Settings → Secrets and variables → Actions → Variables). Run it by hand from the Actions tab to test.
+
 #### Affiliate Disclosure
 ***Simple Analytics:*** they give me 50% of the first year's revenue. You as a new customer will get one month of extra trial.
 
