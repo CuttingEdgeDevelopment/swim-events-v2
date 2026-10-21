@@ -37,7 +37,8 @@ function matchesQuery(event: SwimEvent, query: string): boolean {
   if (words.length === 0) return true
 
   const parsed = parseLocation(event)
-  const haystack = normalize([event.name, event.location, parsed?.country ?? ''].join(' '))
+  const place = parsed ? [parsed.city, parsed.code, parsed.country] : [event.city ?? event.location ?? '']
+  const haystack = normalize([event.name, ...place].join(' '))
   return words.every((word) => haystack.includes(word))
 }
 
