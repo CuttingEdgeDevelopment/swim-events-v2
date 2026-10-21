@@ -5,6 +5,8 @@ export type SwimEvent = {
   id: number
   name: string
   location: string
+  /** IOC code, a key of the `countries` table; undefined until that column exists. */
+  country?: string | null
   dateStart: string
   dateEnd: string
   link: string | null

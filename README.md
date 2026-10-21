@@ -18,6 +18,11 @@ Astro, Tailwind CSS, [Accessible Astro Components](https://github.com/incluud/ac
 The page is static. In the browser, `src/scripts/events.ts` loads all rows from the Supabase `events` table, then works out
 each countdown from the visitor's local date (`src/lib/countdown.ts`). "Update events" fetches them again.
 
+Each event has a `country`: the Olympic (IOC) code, e.g. `SUI`, checked against the `countries` table. When it's left
+empty, it's taken from the code in `location` ("Basel (SUI)"), and common mix-ups such as `MCO` for Monaco (`MON`) are
+corrected on save (`supabase/migrations/`). The same codes, names and flags are in `src/lib/countries.ts`; the round flags
+in `public/flags/` are copied from [circle-flags](https://github.com/HatScripts/circle-flags) with `npm run flags`.
+
 ### Getting started
 Requires Node 24.19 or newer.
 
@@ -35,6 +40,7 @@ Requires Node 24.19 or newer.
 | `npm run dev`     | Starts local dev server at `localhost:4321` |
 | `npm run build`   | Builds the production site to `./dist/`     |
 | `npm run preview` | Previews the build locally                  |
+| `npm run flags`   | Copies the country flags to `public/flags/` |
 
 ### Deployment
 Netlify builds the site using `netlify.toml`. Set `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_KEY` in the site's environment
@@ -47,4 +53,5 @@ variables.
 
 ### License
 MIT, see [LICENSE](LICENSE). Built on the Accessible Astro Starter by Incluud, also MIT
-([LICENSE.accessible-astro-starter](LICENSE.accessible-astro-starter)).
+([LICENSE.accessible-astro-starter](LICENSE.accessible-astro-starter)). Flags from circle-flags by HatScripts, MIT
+([public/flags/LICENSE](public/flags/LICENSE)).

@@ -65,6 +65,13 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
           <label for="filter-to">To</label>
           <input id="filter-to" name="to" type="date" />
         </div>
+        <fieldset id="country-filter" class="country-filter" hidden>
+          <legend>Country</legend>
+          <ul id="country-chips" class="country-filter__chips"></ul>
+          <button id="more-countries" type="button" class="country-filter__more" hidden>
+            More countries (<span data-field="count"></span>)
+          </button>
+        </fieldset>
         <button type="reset" class="event-filters__clear" hidden>Clear filters</button>
       </form>
       <p id="filter-summary" role="status" class="event-filters__summary"></p>
@@ -302,6 +309,69 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
   .event-filters__field--search {
     @include breakpoint(m) {
       flex-basis: 20rem;
+    }
+  }
+
+  // Flag chips for the countries with events in the open tab; the chips are in _swim.scss
+  .country-filter {
+    flex-basis: 100%;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    min-inline-size: 0;
+
+    &[hidden] {
+      display: none;
+    }
+
+    legend {
+      margin-block-end: var(--space-4xs);
+      padding: 0;
+      font-weight: 700;
+      font-size: var(--font-size--1);
+    }
+  }
+
+  .country-filter__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  // On small screens only the first chips show until "More countries"
+  .country-filter:not(.is-expanded) .country-filter__chips :global(li:nth-child(n + 9)) {
+    display: none;
+
+    @include breakpoint(m) {
+      display: block;
+    }
+  }
+
+  .country-filter__more {
+    cursor: pointer;
+    margin-block-start: var(--space-3xs);
+    border: none;
+    background: none;
+    padding-inline: var(--space-2xs);
+    min-block-size: 44px;
+    color: var(--pool-color);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+
+    &:hover {
+      color: var(--pool-hover-color);
+    }
+
+    &[hidden] {
+      display: none;
+    }
+
+    @include breakpoint(m) {
+      display: none;
     }
   }
 
