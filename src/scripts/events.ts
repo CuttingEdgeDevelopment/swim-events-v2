@@ -22,7 +22,7 @@ import {
   type Period,
 } from '../lib/filters'
 import { COUNTRIES } from '../lib/countries'
-import { flagUrl, listLocation, parseLocation } from '../lib/locations'
+import { flagUrl, listLocation, parseLocation, shortLocation } from '../lib/locations'
 import { fetchEvents, type SwimEvent } from '../lib/supabase'
 
 const LOCALE = 'en-US'
@@ -306,7 +306,7 @@ function renderLiveCard(template: HTMLTemplateElement, event: SwimEvent, today: 
   }
 
   fillName(card, event)
-  fillPlace(field(card, 'place'), event, event.location.trim())
+  fillPlace(field(card, 'place'), event, shortLocation(event))
   fillDates(field(card, 'dates'), event)
   fillCalendar(field(card, 'calendar'), event)
   return card
@@ -316,7 +316,7 @@ function renderNextCard(template: HTMLTemplateElement, event: SwimEvent, daysToG
   const card = template.content.cloneNode(true) as DocumentFragment
 
   fillName(card, event)
-  fillPlace(field(card, 'place'), event, event.location.trim())
+  fillPlace(field(card, 'place'), event, shortLocation(event))
   fillDates(field(card, 'dates'), event)
   fillCalendar(field(card, 'calendar'), event)
   field(card, 'number').textContent = String(daysToGo)
