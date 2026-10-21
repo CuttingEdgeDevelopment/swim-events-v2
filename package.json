@@ -9,7 +9,8 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "flags": "node scripts/flags.mjs"
   },
   "keywords": [
     "astro",
@@ -37,6 +38,7 @@
     "astro-compress": "^2.4.3",
     "astro-eslint-parser": "^1.4.0",
     "astro-icon": "^1.1.5",
+    "circle-flags": "^2.8.3",
     "eslint": "^9.39.2",
     "eslint-plugin-astro": "^1.7.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
@@ -51,12 +53,14 @@
     "tailwindcss": "^4.2.4"
   },
   "dependencies": {
+    "@astrojs/check": "^0.9.12",
     "@astrojs/sitemap": "^3.7.3",
     "@supabase/supabase-js": "^2.118.0",
     "@tailwindcss/vite": "^4.2.4",
     "accessible-astro-components": "^5.8.0",
     "add-to-calendar-button": "3.3.0",
-    "astro-seo": "^1.1.0"
+    "astro-seo": "^1.1.0",
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=24.19.0",

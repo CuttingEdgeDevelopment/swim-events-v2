@@ -10,6 +10,7 @@ import {
   type CalendarDate,
 } from '../lib/countdown'
 import {
+  eventCountries,
   filtersFromUrl,
   filtersToUrl,
   groupBy,
@@ -20,7 +21,8 @@ import {
   type EventFilters,
   type Period,
 } from '../lib/filters'
-import { listLocation } from '../lib/locations'
+import { COUNTRIES } from '../lib/countries'
+import { flagUrl, listLocation, parseLocation } from '../lib/locations'
 import { fetchEvents, type SwimEvent } from '../lib/supabase'
 
 const LOCALE = 'en-US'
@@ -161,7 +163,7 @@ function fillCalendar(container: HTMLElement, event: SwimEvent): void {
     name: event.name,
     'start-date': event.dateStart.slice(0, 10),
     'end-date': event.dateEnd.slice(0, 10),
-    location: listLocation(event.location),
+    location: listLocation(event),
     // the same id every time, so adding an event again updates it instead of duplicating it
     uid: `swim-events-${event.id}`,
     options: CALENDARS,
@@ -179,12 +181,36 @@ function fillCalendar(container: HTMLElement, event: SwimEvent): void {
   container.replaceChildren(button)
 }
 
+/** A decorative round flag; the country is always named in the text next to it. */
+function flagImage(code: string): HTMLImageElement | null {
+  const src = flagUrl(code)
+  if (!src) return null
+
+  const image = document.createElement('img')
+  image.className = 'flag'
+  image.src = src
+  image.alt = ''
+  image.width = 18
+  image.height = 18
+  image.decoding = 'async'
+  image.loading = 'lazy'
+  image.addEventListener('error', () => image.remove())
+  return image
+}
+
+/** The place text with the country's flag in front of it, when there is one. */
+function fillPlace(container: HTMLElement, event: SwimEvent, text: string): void {
+  const code = parseLocation(event)?.code
+  const flag = code ? flagImage(code) : null
+  container.replaceChildren(...(flag ? [flag] : []), text)
+}
+
 function renderCard(template: HTMLTemplateElement, event: SwimEvent, today: CalendarDate): DocumentFragment {
   const card = template.content.cloneNode(true) as DocumentFragment
   const timing = eventTiming(event.dateStart, event.dateEnd, today)
 
   fillName(card, event)
-  field(card, 'place').textContent = listLocation(event.location)
+  fillPlace(field(card, 'place'), event, listLocation(event))
   fillDates(field(card, 'dates'), event)
   fillCalendar(field(card, 'calendar'), event)
 
@@ -223,7 +249,7 @@ function renderPastRow(template: HTMLTemplateElement, event: SwimEvent, today: C
   const daysAgo = timing.kind === 'past' ? timing.daysAgo : 0
 
   fillName(row, event)
-  field(row, 'place').textContent = listLocation(event.location)
+  fillPlace(field(row, 'place'), event, listLocation(event))
   fillDates(field(row, 'dates'), event)
   field(row, 'finished').textContent = daysAgo === 1 ? 'Finished yesterday' : `Finished ${daysAgo} days ago`
   return row
@@ -280,7 +306,7 @@ function renderLiveCard(template: HTMLTemplateElement, event: SwimEvent, today: 
   }
 
   fillName(card, event)
-  field(card, 'place').textContent = event.location.trim()
+  fillPlace(field(card, 'place'), event, event.location.trim())
   fillDates(field(card, 'dates'), event)
   fillCalendar(field(card, 'calendar'), event)
   return card
@@ -290,7 +316,7 @@ function renderNextCard(template: HTMLTemplateElement, event: SwimEvent, daysToG
   const card = template.content.cloneNode(true) as DocumentFragment
 
   fillName(card, event)
-  field(card, 'place').textContent = event.location.trim()
+  fillPlace(field(card, 'place'), event, event.location.trim())
   fillDates(field(card, 'dates'), event)
   fillCalendar(field(card, 'calendar'), event)
   field(card, 'number').textContent = String(daysToGo)
@@ -344,6 +370,10 @@ function render(): void {
   const kindOf = (event: SwimEvent) => eventTiming(event.dateStart, event.dateEnd, today).kind
   const shown = events.filter((event) => matchesFilters(event, filters, today))
   const filtered = hasFilters(filters)
+  // The chips count events that match the other filters, so picking a country never hides another
+  const unlessCountry = events.filter((event) => matchesFilters(event, { ...filters, countries: [] }, today))
+  const pastTab = document.getElementById('past-tab')?.getAttribute('aria-selected') === 'true'
+  renderCountryChips(unlessCountry.filter((event) => (kindOf(event) === 'past') === pastTab))
   const live = shown.filter((event) => ['ongoing', 'today'].includes(kindOf(event)))
   const upcoming = shown.filter((event) => kindOf(event) === 'upcoming')
   // Most recently finished first
@@ -362,7 +392,10 @@ function render(): void {
     upcomingList.length > 0
       ? null
       : filtered
-        ? [paragraph(strong('No upcoming events match your filters.')), paragraph('Try another search or time period.')]
+        ? [
+            paragraph(strong('No upcoming events match your filters.')),
+            paragraph('Try another search, time period or country.'),
+          ]
         : [
             paragraph(strong('No upcoming events right now.')),
             paragraph('New meets show up here as soon as they’re added. Recent results are under Past.'),
@@ -374,7 +407,7 @@ function render(): void {
   )
 }
 
-/** "Showing 6 of 95 events · 20 Oct – 19 Jan 2027" while a filter is set, empty otherwise. */
+/** "Showing 6 of 95 events · 20 Oct – 19 Jan 2027 · Switzerland" while a filter is set, empty otherwise. */
 function renderFilterSummary(shownCount: number, today: CalendarDate): void {
   const summary = document.getElementById('filter-summary')
   const clear = document.querySelector<HTMLButtonElement>('#event-filters button[type="reset"]')
@@ -391,7 +424,10 @@ function renderFilterSummary(shownCount: number, today: CalendarDate): void {
         : to
           ? ` · until ${rangeText(to, to)}`
           : ''
-  const text = filtered ? `Showing ${shownCount} of ${events.length} events${period}` : ''
+  const countries = filters.countries.map((code) => COUNTRIES[code]?.name ?? code).join(', ')
+  const text = filtered
+    ? `Showing ${shownCount} of ${events.length} events${period}${countries ? ` · ${countries}` : ''}`
+    : ''
   if (summary.textContent !== text) summary.textContent = text
 }
 
@@ -401,6 +437,67 @@ function rangeText(from: string, to: string): string {
   return range.start ? `${range.start}${dateRangeSeparator(range)}${range.end}` : range.end
 }
 
+/** Chips beyond this many hide behind "More countries" on small screens. */
+const VISIBLE_CHIPS = 8
+
+/**
+ * One checkbox chip per country with events in the open tab: the flag and the IOC code,
+ * with the name and count for screen readers and on hover. Selected countries stay even
+ * when the tab has no events for them, so they can be unticked.
+ */
+function renderCountryChips(tabEvents: SwimEvent[]): void {
+  const fieldset = document.getElementById('country-filter')
+  const list = document.getElementById('country-chips')
+  const more = document.getElementById('more-countries') as HTMLButtonElement | null
+  if (!fieldset || !list || !more) return
+
+  const countries = eventCountries(tabEvents)
+  for (const code of filters.countries) {
+    if (!countries.some((country) => country.code === code)) {
+      countries.push({ code, country: COUNTRIES[code]?.name ?? code, count: 0 })
+    }
+  }
+
+  // Re-rendering replaces the checkboxes, so keep keyboard focus on the same country
+  const focused = list.contains(document.activeElement) ? (document.activeElement as HTMLInputElement).value : null
+  list.replaceChildren(...countries.map(renderCountryChip))
+  if (focused) list.querySelector<HTMLInputElement>(`input[value="${focused}"]`)?.focus()
+
+  fieldset.hidden = countries.length === 0
+  const hiddenSelected = countries.slice(VISIBLE_CHIPS).some(({ code }) => filters.countries.includes(code))
+  if (hiddenSelected) fieldset.classList.add('is-expanded')
+  const expanded = fieldset.classList.contains('is-expanded')
+  more.hidden = countries.length <= VISIBLE_CHIPS || expanded
+  field(more, 'count').textContent = String(countries.length - VISIBLE_CHIPS)
+}
+
+function renderCountryChip({ code, country, count }: { code: string; country: string; count: number }): HTMLElement {
+  const item = document.createElement('li')
+  const label = document.createElement('label')
+  label.className = 'country-chip'
+  label.title = `${country} (${count})`
+
+  const input = document.createElement('input')
+  input.type = 'checkbox'
+  input.name = 'country'
+  input.value = code
+  input.checked = filters.countries.includes(code)
+
+  const check = document.createElement('span')
+  check.className = 'country-chip__check'
+  check.setAttribute('aria-hidden', 'true')
+  const codeText = document.createElement('span')
+  codeText.textContent = code
+  const nameText = document.createElement('span')
+  nameText.className = 'sr-only'
+  nameText.textContent = ` ${country}, ${count} ${count === 1 ? 'event' : 'events'}`
+
+  const flag = flagImage(code)
+  label.append(input, check, ...(flag ? [flag] : []), codeText, nameText)
+  item.append(label)
+  return item
+}
+
 function readFilterForm(form: HTMLFormElement): EventFilters {
   const data = new FormData(form)
   return {
@@ -408,6 +505,7 @@ function readFilterForm(form: HTMLFormElement): EventFilters {
     period: String(data.get('when') ?? '') as Period,
     from: String(data.get('from') ?? ''),
     to: String(data.get('to') ?? ''),
+    countries: data.getAll('country').map(String),
   }
 }
 
@@ -431,12 +529,26 @@ function initFilters(): void {
   if (!form) return
 
   filters = filtersFromUrl(new URL(location.href))
+  // drops unknown countries and resolves aliases in a shared link (?country=mco becomes MON)
+  history.replaceState(history.state, '', filtersToUrl(new URL(location.href), filters))
   const query = form.elements.namedItem('q') as HTMLInputElement
   query.value = filters.query
   ;(form.elements.namedItem('when') as HTMLSelectElement).value = filters.period
   ;(form.elements.namedItem('from') as HTMLInputElement).value = filters.from
   ;(form.elements.namedItem('to') as HTMLInputElement).value = filters.to
   syncDateFields(form)
+
+  // The country chips follow the open tab
+  const pastTab = document.getElementById('past-tab')
+  if (pastTab) {
+    new MutationObserver(() => loaded && render()).observe(pastTab, { attributeFilter: ['aria-selected'] })
+  }
+  document.getElementById('more-countries')?.addEventListener('click', (event) => {
+    document.getElementById('country-filter')?.classList.add('is-expanded')
+    ;(event.currentTarget as HTMLElement).hidden = true
+    // the first chip that was hidden, so keyboard users carry on where the list grew
+    document.querySelector<HTMLInputElement>(`#country-chips li:nth-child(${VISIBLE_CHIPS + 1}) input`)?.focus()
+  })
 
   form.addEventListener('submit', (event) => event.preventDefault())
   form.addEventListener('input', () => applyFilters(form, readFilterForm(form)))

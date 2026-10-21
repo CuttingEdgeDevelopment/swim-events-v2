@@ -183,3 +183,93 @@ body > footer::before {
     forced-color-adjust: none;
   }
 }
+
+// Round country flags next to the place and in the country chips. They are decorative
+// (alt=""), the country is always named next to them. The ring keeps light flags
+// visible on the surface colour; images keep their colours in forced-colours mode.
+.flag {
+  display: inline-block;
+  vertical-align: -0.2em;
+  margin-inline-end: 0.4em;
+  box-shadow: 0 0 0 1px var(--border-subtle-color);
+  border-radius: 50%;
+  inline-size: 1.1em;
+  block-size: 1.1em;
+
+  @media (forced-colors: active) {
+    outline: 1px solid CanvasText;
+    box-shadow: none;
+  }
+}
+
+.featured-card .flag {
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.6);
+}
+
+// Country filter: a checkbox per chip with only the flag and the IOC code showing
+.country-chip {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  cursor: pointer;
+  // transparent, so the chips only get an outline in forced-colours mode
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-color: transparent;
+  padding-inline: var(--space-xs) var(--space-s);
+  min-block-size: 44px;
+  color: var(--text-color);
+  font-weight: 700;
+  font-size: var(--font-size--1);
+  letter-spacing: 0.04em;
+
+  &:hover {
+    background-color: var(--badge-info-bg);
+  }
+
+  input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    margin: 0;
+    inset: 0;
+  }
+
+  &:has(input:focus-visible) {
+    outline: 3px solid var(--lane-red);
+    outline-offset: 2px;
+  }
+
+  // Selected: filled and a check mark, so the state isn't shown by colour alone
+  &:has(input:checked) {
+    border-color: var(--pool-color);
+    background-color: var(--pool-color);
+    color: var(--on-pool-color);
+
+    @media (forced-colors: active) {
+      border-color: SelectedItem;
+      background-color: SelectedItem;
+      color: SelectedItemText;
+      forced-color-adjust: none;
+    }
+  }
+
+  .flag {
+    vertical-align: middle;
+  }
+}
+
+.country-chip__check {
+  display: none;
+  translate: 0 -0.1em;
+  rotate: 45deg;
+  margin-inline: 0.1em 0.45em;
+  border: solid currentColor;
+  border-width: 0 0.18em 0.18em 0;
+  inline-size: 0.45em;
+  block-size: 0.85em;
+}
+
+.country-chip:has(input:checked) .country-chip__check {
+  display: inline-block;
+}
