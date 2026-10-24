@@ -24,4 +24,4 @@ $$;
 
 alter table public.events drop column location;
 
-drop table public.events_backup_20261021;
+drop table if exists public.events_backup_20261021; -- only on the live project, not in a local stack
