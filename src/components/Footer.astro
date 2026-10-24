@@ -6,12 +6,18 @@ const currentYear = new Date().getFullYear()
 
 <footer>
   <section class="py-8">
-    <div class="container">
+    <div class="footer__content container">
       <p>
         Copyright &copy; 2025-{currentYear}
         <Link href="https://cutting-edge.dev/" isExternal>Cutting Edge Development Studio</Link>
         <span class="ms-1">by Nicolas Messer</span>
       </p>
+      <nav aria-label="Legal">
+        <ul class="footer__links">
+          <li><a href="/privacy">Privacy policy</a></li>
+          <li><a href="/terms">Terms of service</a></li>
+        </ul>
+      </nav>
     </div>
   </section>
 </footer>
@@ -24,5 +30,22 @@ const currentYear = new Date().getFullYear()
     background-color: var(--surface-color);
     color: var(--text-muted-color);
     font-size: 1rem; // a step under the 18px body text, as in the mockup
+  }
+
+  // copyright on the left, legal links on the right, stacked on narrow screens
+  .footer__content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-xs) var(--space-l);
+  }
+
+  .footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-m);
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 </style>
