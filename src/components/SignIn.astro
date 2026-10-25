@@ -1,0 +1,96 @@
+---
+import { Icon } from 'astro-icon/components'
+
+interface Props {
+  /**
+   * The heading of the email step
+   */
+  heading: string
+}
+
+const { heading } = Astro.props
+---
+
+<section class="panel sign-in" data-sign-in aria-labelledby="signin-heading" hidden>
+  <form class="panel__body" data-step="email" novalidate>
+    <div class="panel__intro">
+      <h2 id="signin-heading" tabindex="-1">{heading}</h2>
+      <p class="muted">
+        We'll email you a 6-digit code. No password needed. New here? Signing in creates your free account.
+      </p>
+    </div>
+
+    <div class="notice notice--error" data-field="email-notice" role="alert" hidden></div>
+
+    <div class="field">
+      <label for="signin-email">Email address <span class="field__required">(required)</span></label>
+      <input id="signin-email" name="email" type="email" autocomplete="email" spellcheck="false" />
+    </div>
+
+    <div class="check" data-error-anchor>
+      <input id="signin-terms" name="terms" type="checkbox" />
+      <label for="signin-terms">
+        I agree to the <a href="/terms">terms of service</a> and the <a href="/privacy">privacy policy</a>
+        <span class="field__required">(required)</span>
+      </label>
+    </div>
+
+    <p class="hint">Spam check by Cloudflare Turnstile. Most people never see a challenge.</p>
+
+    <div>
+      <button type="submit" class="button">
+        <Icon aria-hidden="true" name="lucide:mail" size="1.1rem" />
+        <span data-label>Send code</span>
+      </button>
+    </div>
+  </form>
+
+  <form class="panel__body" data-step="code" novalidate hidden>
+    <div class="panel__intro">
+      <h2 id="code-heading" tabindex="-1">Check your email</h2>
+      <p class="muted">
+        We sent a 6-digit code to <strong data-field="sent-to"></strong>. It's valid for 15 minutes. You can also use
+        the sign-in link in the same email.
+      </p>
+    </div>
+
+    <div class="notice notice--error" data-field="code-notice" role="alert" hidden></div>
+
+    <div class="field">
+      <label for="signin-code">6-digit code <span class="field__required">(required)</span></label>
+      <input
+        id="signin-code"
+        name="code"
+        class="field__code"
+        type="text"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        maxlength="6"
+        spellcheck="false"
+      />
+    </div>
+
+    <div>
+      <button type="submit" class="button"><span data-label>Sign in</span></button>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="button button--secondary" data-action="resend">
+        <span data-label>Send a new code</span>
+      </button>
+      <button type="button" class="button button--quiet" data-action="change-email">Use a different email</button>
+    </div>
+
+    <div class="notice">
+      <Icon aria-hidden="true" name="lucide:info" size="1.25rem" />
+      <p>
+        Didn't get the code? Check your spam folder and wait a minute before sending a new one. Still nothing? Write to
+        <a href="mailto:info@proswimworkouts.com">info@proswimworkouts.com</a>.
+      </p>
+    </div>
+  </form>
+
+  <!-- Shared by both steps; only shows up when Cloudflare needs a click -->
+  <div class="sign-in__turnstile" data-field="turnstile"></div>
+  <p class="sr-only" role="status" data-field="status"></p>
+</section>

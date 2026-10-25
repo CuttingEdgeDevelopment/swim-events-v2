@@ -1,0 +1,528 @@
+@use 'breakpoint' as *;
+
+// The submit and account pages: one readable column of white panels with forms, as in the
+// event submissions mockup. Borders stay visible in forced-colours mode, and every state
+// that has a colour also has an icon or words.
+
+.page-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-l);
+  padding-block: var(--space-l) var(--space-xl);
+  max-inline-size: 42rem;
+  // long email addresses wrap instead of widening the page
+  overflow-wrap: anywhere;
+
+  h1 {
+    font-size: var(--font-size-4);
+    line-height: 1.15;
+  }
+
+  h2 {
+    font-size: var(--font-size-2);
+    line-height: 1.25;
+  }
+
+  h3 {
+    font-size: var(--font-size-1);
+    line-height: 1.3;
+  }
+
+  ul:not([class]),
+  .page-intro__text ul {
+    padding-inline-start: 1.25em;
+    list-style: disc;
+  }
+}
+
+.page-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+
+  &--split {
+    flex-flow: row wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+}
+
+.page-intro__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.muted,
+.hint {
+  color: var(--text-muted-color);
+}
+
+.hint {
+  font-size: var(--font-size--1);
+}
+
+.panel {
+  border: 1px solid var(--border-subtle-color);
+  border-radius: var(--radius-h);
+  background-color: var(--surface-color);
+
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+  }
+
+  &--danger {
+    border-color: var(--lane-red);
+  }
+}
+
+.panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  padding: var(--space-m);
+
+  @include breakpoint(s) {
+    padding: var(--space-l);
+  }
+}
+
+.panel__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+// headings that get focus after a step change don't need the ring around the text block
+[tabindex='-1']:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  min-inline-size: 0;
+
+  label {
+    font-weight: 700;
+  }
+
+  input,
+  select,
+  textarea {
+    box-sizing: border-box;
+    border: 2px solid var(--border-strong-color);
+    border-radius: var(--radius-l);
+    background-color: var(--surface-color);
+    padding: var(--space-2xs) var(--space-xs);
+    inline-size: 100%;
+    min-block-size: 48px;
+    color: var(--text-color);
+    font: inherit;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  [aria-invalid='true'] {
+    border-color: var(--badge-live-text);
+    border-inline-start-width: 6px;
+  }
+}
+
+.field__required {
+  color: var(--text-muted-color);
+  font-weight: 400;
+}
+
+.field__code {
+  max-inline-size: 12rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3em;
+}
+
+// side by side from tablet width, stacked below
+.field-row {
+  display: grid;
+  gap: var(--space-m);
+
+  @include breakpoint(s) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin: 0;
+  border: 0;
+  padding: 0;
+  min-inline-size: 0;
+
+  legend {
+    margin-block-end: var(--space-3xs);
+    padding: 0;
+    font-weight: 700;
+    font-size: var(--font-size-1);
+  }
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+
+  input {
+    flex-shrink: 0;
+    margin: 2px 0 0;
+    inline-size: 24px;
+    block-size: 24px;
+    accent-color: var(--pool-color);
+  }
+
+  label {
+    font-weight: 700;
+  }
+
+  .hint {
+    margin-block-start: var(--space-4xs);
+  }
+
+  &:has([aria-invalid='true']) {
+    border-inline-start: 6px solid var(--badge-live-text);
+    padding-inline-start: var(--space-xs);
+  }
+}
+
+.field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2xs);
+  color: var(--badge-live-text);
+  font-weight: 700;
+
+  svg {
+    flex-shrink: 0;
+    margin-block-start: 0.15em;
+  }
+}
+
+.error-summary {
+  border: 3px solid var(--badge-live-text);
+  border-radius: var(--radius-l);
+  padding: var(--space-s) var(--space-m);
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    margin-block-end: var(--space-2xs);
+    color: var(--badge-live-text);
+    font-size: var(--font-size-1);
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    padding-inline-start: 1.25em;
+    list-style: disc;
+  }
+
+  a {
+    color: var(--badge-live-text);
+    font-weight: 700;
+  }
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  border: 1px solid var(--border-subtle-color);
+  border-radius: var(--radius-l);
+  background-color: var(--page-color);
+  padding: var(--space-s);
+
+  > svg {
+    flex-shrink: 0;
+    margin-block-start: 0.15em;
+    color: var(--pool-color);
+  }
+
+  &--info {
+    border-color: var(--badge-info-text);
+    background-color: var(--badge-info-bg);
+  }
+
+  &--error {
+    border: 2px solid var(--badge-live-text);
+    background-color: var(--badge-live-bg);
+    color: var(--badge-live-text);
+    font-weight: 700;
+
+    > svg {
+      color: currentColor;
+    }
+  }
+}
+
+.duplicates__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+  }
+
+  li {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2xs);
+  }
+}
+
+.duplicates__list {
+  padding-block-start: var(--space-3xs);
+}
+
+.duplicates__title {
+  font-weight: 700;
+}
+
+.button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-2xs);
+  cursor: pointer;
+  border: 2px solid var(--pool-color);
+  // round ends that stay round when a long label wraps
+  border-radius: 24px;
+  background-color: var(--pool-color);
+  padding: var(--space-3xs) var(--space-m);
+  min-block-size: 48px;
+  color: var(--on-pool-color);
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+
+  &:hover {
+    border-color: var(--pool-hover-color);
+    background-color: var(--pool-hover-color);
+    color: var(--on-pool-color);
+  }
+
+  &--secondary {
+    background-color: var(--surface-color);
+    color: var(--pool-color);
+
+    &:hover {
+      background-color: var(--badge-info-bg);
+      color: var(--pool-hover-color);
+    }
+  }
+
+  &--quiet {
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--pool-color);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+
+    &:hover {
+      border-color: transparent;
+      background-color: transparent;
+      color: var(--pool-hover-color);
+    }
+  }
+
+  &--danger {
+    border-color: var(--lane-red);
+    background-color: var(--surface-color);
+    color: var(--badge-live-text);
+
+    &:hover {
+      border-color: var(--badge-live-text);
+      background-color: var(--badge-live-bg);
+      color: var(--badge-live-text);
+    }
+  }
+
+  &--small {
+    padding-inline: var(--space-s);
+    min-block-size: 44px;
+    font-size: var(--font-size--1);
+  }
+
+  // aria-disabled rather than disabled, so keyboard focus stays on the button
+  &[aria-disabled='true'] {
+    cursor: not-allowed;
+    border-color: var(--disabled-border);
+    background-color: var(--disabled-bg);
+    color: var(--text-muted-color);
+
+    @media (forced-colors: active) {
+      border-color: GrayText;
+      color: GrayText;
+    }
+  }
+}
+
+// "Sign out" inside a sentence
+.link-button {
+  cursor: pointer;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--link-color);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+
+  &:hover {
+    color: var(--link-hover-color);
+  }
+}
+
+.actions,
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs) var(--space-s);
+}
+
+// Turnstile only takes space when Cloudflare needs a click
+.sign-in__turnstile:empty {
+  display: none;
+}
+
+.sign-in__turnstile {
+  padding-inline: var(--space-m);
+  padding-block-end: var(--space-m);
+
+  @include breakpoint(s) {
+    padding-inline: var(--space-l);
+  }
+}
+
+.success__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.success__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+  border-radius: 999px;
+  background-color: var(--badge-info-bg);
+  inline-size: 44px;
+  block-size: 44px;
+  color: var(--badge-info-text);
+}
+
+.section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-m);
+}
+
+.section-heading__aside {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-s);
+}
+
+.submissions {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.submission {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs) var(--space-s);
+  border-block-start: 1px solid var(--border-subtle-color);
+  padding-block: var(--space-s);
+
+  &:last-child {
+    border-block-end: 1px solid var(--border-subtle-color);
+  }
+}
+
+.submission__text {
+  display: flex;
+  flex: 1 1 18rem;
+  flex-direction: column;
+  gap: var(--space-4xs);
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: var(--space-4xs) var(--space-xs);
+  font-weight: 700;
+  font-size: var(--font-size--1);
+  white-space: nowrap;
+
+  @media (forced-colors: active) {
+    border-color: CanvasText;
+  }
+
+  &--info {
+    background-color: var(--badge-info-bg);
+    color: var(--badge-info-text);
+  }
+
+  &--done {
+    border-color: var(--pool-color);
+    background-color: var(--surface-color);
+    color: var(--pool-color);
+  }
+
+  &--problem {
+    background-color: var(--badge-live-bg);
+    color: var(--badge-live-text);
+  }
+
+  &--plain {
+    border-color: var(--border-subtle-color);
+    color: var(--text-muted-color);
+  }
+}
+
+.dialog {
+  margin: auto;
+  border: 1px solid var(--border-subtle-color);
+  border-radius: var(--radius-h);
+  background-color: var(--surface-color);
+  padding: 0;
+  inline-size: min(32rem, calc(100vw - 2rem));
+  color: var(--text-color);
+
+  &::backdrop {
+    background-color: hsl(210deg 50% 8% / 0.6);
+  }
+}

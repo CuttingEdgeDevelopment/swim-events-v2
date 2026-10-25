@@ -1,0 +1,145 @@
+---
+import DefaultLayout from '@layouts/DefaultLayout.astro'
+import SignIn from '@components/SignIn.astro'
+import { Icon } from 'astro-icon/components'
+---
+
+<DefaultLayout
+  title="Your account"
+  description="Sign in to see the events you sent to Swim Events and manage your account."
+>
+  <div class="container">
+    <div class="page-column" id="account-page">
+      <div class="page-intro page-intro--split">
+        <div>
+          <h1 id="account-heading" tabindex="-1">Your account</h1>
+          <p class="muted" data-view="signed-out">
+            Organisers sign in here to see the events they sent us. New here? Signing in creates your free account.
+          </p>
+          <p class="muted" data-view="signed-in" hidden>Signed in as <strong data-field="user-email"></strong></p>
+        </div>
+        <button type="button" class="button button--secondary" data-view="signed-in" data-action="sign-out" hidden>
+          Sign out
+        </button>
+      </div>
+
+      <noscript>
+        <div class="notice">
+          <p>
+            This page needs JavaScript to sign you in. You can also write to
+            <a href="mailto:info@proswimworkouts.com">info@proswimworkouts.com</a>.
+          </p>
+        </div>
+      </noscript>
+
+      <p class="muted" data-view="loading" role="status">Loading…</p>
+      <div class="notice notice--error" data-field="load-notice" role="alert" hidden></div>
+
+      <SignIn heading="Sign in to your account" />
+
+      <section class="panel" data-view="deleted" aria-labelledby="deleted-heading" hidden>
+        <div class="panel__body">
+          <h2 id="deleted-heading" tabindex="-1">Your account is deleted</h2>
+          <p>Your account, profile and email address are gone. Events that were already published stay on the site.</p>
+          <p><a href="/">Back to all events</a></p>
+        </div>
+      </section>
+
+      <section class="panel" data-view="signed-in" aria-labelledby="subs-heading" hidden>
+        <div class="panel__body">
+          <div class="section-heading">
+            <h2 id="subs-heading">My submissions</h2>
+            <div class="section-heading__aside">
+              <p class="muted" data-field="waiting-line" hidden></p>
+              <a href="/submit">Submit an event</a>
+            </div>
+          </div>
+          <p data-field="no-submissions" hidden>
+            You haven't sent any events yet. <a href="/submit">Submit your first competition</a>.
+          </p>
+          <ul class="submissions" data-field="submissions"></ul>
+          <p class="sr-only" role="status" data-field="list-status"></p>
+          <div class="notice notice--error" data-field="list-notice" role="alert" hidden></div>
+          <p class="muted">
+            Need to change a published event? Write to <a href="mailto:info@proswimworkouts.com"
+              >info@proswimworkouts.com</a
+            >. Editing your own events comes later.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel" data-field="owned" aria-labelledby="owned-heading" hidden>
+        <div class="panel__body">
+          <div>
+            <h2 id="owned-heading">Your events</h2>
+            <p class="muted">Events linked to your account as their organiser.</p>
+          </div>
+          <ul class="submissions" data-field="owned-list"></ul>
+        </div>
+      </section>
+
+      <form
+        class="panel"
+        data-view="signed-in"
+        data-field="profile-form"
+        aria-labelledby="profile-heading"
+        novalidate
+        hidden
+      >
+        <div class="panel__body">
+          <div>
+            <h2 id="profile-heading">Profile</h2>
+            <p class="muted">Only we see this. It helps us when reviewing your events.</p>
+          </div>
+          <div class="field">
+            <label for="display-name">Your name <span class="field__required">(optional)</span></label>
+            <input id="display-name" name="display_name" type="text" maxlength="80" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="organisation">Club or organisation <span class="field__required">(optional)</span></label>
+            <input id="organisation" name="organisation" type="text" maxlength="120" autocomplete="organization" />
+          </div>
+          <div class="notice notice--error" data-field="profile-notice" role="alert" hidden></div>
+          <div class="form-actions">
+            <button type="submit" class="button"><span data-label>Save profile</span></button>
+            <p class="muted" role="status" data-field="profile-status"></p>
+          </div>
+        </div>
+      </form>
+
+      <section class="panel panel--danger" data-view="signed-in" aria-labelledby="delete-heading" hidden>
+        <div class="panel__body">
+          <h2 id="delete-heading">Delete my account</h2>
+          <p>
+            Your account, profile and email address are deleted. Events that are already published stay on the site.
+            You'll be asked to confirm.
+          </p>
+          <div>
+            <button type="button" class="button button--danger" data-action="delete">Delete my account…</button>
+          </div>
+        </div>
+      </section>
+
+      <dialog class="dialog" data-field="delete-dialog" aria-labelledby="dialog-heading">
+        <form method="dialog" class="panel__body">
+          <h2 id="dialog-heading">Delete your account?</h2>
+          <p>This can't be undone. Your submissions stay with us without your name or email address.</p>
+          <div class="notice notice--error" data-field="delete-notice" role="alert" hidden></div>
+          <div class="actions">
+            <button type="button" class="button button--danger" data-action="confirm-delete">
+              <Icon aria-hidden="true" name="lucide:trash-2" size="1.1rem" />
+              <span data-label>Delete my account</span>
+            </button>
+            <button type="submit" class="button button--secondary" value="cancel">Cancel</button>
+          </div>
+        </form>
+      </dialog>
+    </div>
+  </div>
+</DefaultLayout>
+
+<script>
+  import { initAccount } from '../scripts/account'
+
+  document.addEventListener('astro:page-load', initAccount)
+</script>
