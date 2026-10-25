@@ -67,6 +67,11 @@ revoke all on public.profiles from anon, authenticated;
 grant select on public.profiles to authenticated;
 grant update (display_name, organisation, terms_accepted_at) on public.profiles to authenticated;
 
+-- A leftover from Supabase's user management starter: it writes `full_name` and `avatar_url`
+-- into a `profiles` table that never existed, so every sign-up would fail. Replaced below.
+drop trigger if exists on_auth_user_created on auth.users;
+drop function if exists public.handle_new_user();
+
 create function public.create_profile() returns trigger
 language plpgsql
 security definer
