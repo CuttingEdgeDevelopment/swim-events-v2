@@ -32,32 +32,6 @@ const SITE = 'https://swim-events.com'
 const SIGNATURE =
   '\n--\nSwim Events (swim-events.com), run by ProSwimWorkouts\nReply to this email if you have any questions.'
 
-// Addresses anyone can create, so a match with the event website proves nothing
-const FREE_PROVIDERS = [
-  'gmail.com',
-  'googlemail.com',
-  'outlook.com',
-  'hotmail.com',
-  'live.com',
-  'msn.com',
-  'yahoo.com',
-  'icloud.com',
-  'me.com',
-  'aol.com',
-  'gmx.ch',
-  'gmx.de',
-  'gmx.net',
-  'gmx.at',
-  'web.de',
-  'bluewin.ch',
-  'proton.me',
-  'protonmail.com',
-  'hey.com',
-  'yandex.com',
-  'mail.com',
-  'zoho.com',
-]
-
 /** "14–15 Nov 2026", or "14 Nov 2026" for a one-day event. */
 export function formatDates(start: string, end: string): string {
   const format = (date: string, parts: Intl.DateTimeFormatOptions) =>
@@ -77,25 +51,6 @@ export function formatDates(start: string, end: string): string {
 /** Whole days from `today` to `date`, both YYYY-MM-DD. */
 export function daysUntil(date: string, today: string): number {
   return Math.round((Date.parse(`${date}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000)
-}
-
-/** How the submitter's email address relates to the event website, as a hint for checking. */
-export function domainCheck(email: string, link: string): string {
-  const emailDomain = email.split('@').pop()?.toLowerCase() ?? ''
-  if (FREE_PROVIDERS.includes(emailDomain)) return `free email address (${emailDomain}), check another way`
-  if (!link) return `${emailDomain}, no event website to compare`
-
-  let siteDomain: string
-  try {
-    siteDomain = new URL(link).hostname.toLowerCase().replace(/^www\./, '')
-  } catch {
-    return `${emailDomain}, event website can't be read`
-  }
-  const matches =
-    emailDomain === siteDomain || emailDomain.endsWith(`.${siteDomain}`) || siteDomain.endsWith(`.${emailDomain}`)
-  return matches
-    ? `matches the event website (${siteDomain})`
-    : `${emailDomain}, different from the event website (${siteDomain})`
 }
 
 /** The email to Nico about a new submission or claim. */
@@ -119,7 +74,6 @@ export function reviewEmail(submission: Submission, organiser: Organiser, today:
     `From: ${organiser.email}`,
     `Role: ${submission.organiser_role}`,
     `Organisation (profile): ${organiser.organisation || 'not given'}`,
-    `Email domain: ${domainCheck(organiser.email, submission.link)}`,
     `Events approved before: ${organiser.approvedBefore}`,
     '',
     'To decide, open event_submissions in the table editor and set status to approved, rejected or spam:',

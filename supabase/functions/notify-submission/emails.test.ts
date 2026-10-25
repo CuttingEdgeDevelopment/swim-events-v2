@@ -1,6 +1,6 @@
 // Run with `deno test supabase/functions/notify-submission`
 import { assertEquals, assertStringIncludes } from 'jsr:@std/assert@1'
-import { daysUntil, decisionEmail, domainCheck, formatDates, reviewEmail, type Submission } from './emails.ts'
+import { daysUntil, decisionEmail, formatDates, reviewEmail, type Submission } from './emails.ts'
 
 const submission: Submission = {
   id: '6b1f1c1e-0000-4000-8000-000000000001',
@@ -28,14 +28,6 @@ Deno.test('dates read like the site', () => {
   assertEquals(daysUntil('2026-11-14', '2026-10-25'), 20)
 })
 
-Deno.test('the email domain is compared with the event website', () => {
-  assertStringIncludes(domainCheck('anna@scbasel.ch', 'https://www.scbasel.ch/meet'), 'matches')
-  assertStringIncludes(domainCheck('anna@mail.scbasel.ch', 'https://scbasel.ch'), 'matches')
-  assertStringIncludes(domainCheck('anna@gmail.com', 'https://scbasel.ch'), 'free email address')
-  assertStringIncludes(domainCheck('anna@other.ch', 'https://scbasel.ch'), 'different')
-  assertStringIncludes(domainCheck('anna@scbasel.ch', ''), 'no event website')
-})
-
 Deno.test('the review email has what Nico needs to check', () => {
   const email = reviewEmail(
     submission,
@@ -48,7 +40,6 @@ Deno.test('the review email has what Nico needs to check', () => {
     '14–15 Nov 2026 (starts in 20 days)',
     'Meet director',
     'SC Basel',
-    'matches',
     'approved before: 2',
     'Short course',
   ]) {
