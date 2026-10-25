@@ -36,6 +36,10 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
         </div>
       </div>
 
+      <p class="submit-hint">
+        Organising a competition that's missing? <a href="/submit">Submit it</a>
+      </p>
+
       <noscript>
         <Notification type="warning">
           <p>This page needs JavaScript to load the events and calculate the countdowns.</p>
@@ -158,6 +162,12 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-s);
+  }
+
+  .submit-hint {
+    margin-block-end: var(--space-s);
+    color: var(--text-muted-color);
+    font-size: var(--font-size--1);
   }
 
   .refresh-button {

@@ -19,7 +19,10 @@ export default defineThemeConfig({
   },
   navigation: {
     darkmode: true,
-    items: [],
+    items: [
+      { label: 'Submit an event', href: '/submit' },
+      { label: 'Account', href: '/account' },
+    ],
   },
   socials: [],
 })

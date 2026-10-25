@@ -1,0 +1,233 @@
+---
+import DefaultLayout from '@layouts/DefaultLayout.astro'
+import SignIn from '@components/SignIn.astro'
+import { Icon } from 'astro-icon/components'
+import { COUNTRIES } from '../lib/countries'
+import { NOTE_MAX } from '../lib/submission'
+
+const countries = Object.entries(COUNTRIES).sort(([, a], [, b]) => a.name.localeCompare(b.name, 'en'))
+---
+
+<DefaultLayout
+  title="Submit a swim competition"
+  description="Organisers can send their swimming competition to Swim Events. We check every event before it appears on the site."
+>
+  <div class="container">
+    <div class="page-column" id="submit-page">
+      <div class="page-intro">
+        <h1>Submit a swim competition</h1>
+        <div class="page-intro__text" data-view="signed-out">
+          <p class="muted">
+            Organising a competition that's missing? Sign in with your email and send it to us. We check every event
+            before it appears on the site, usually within a few days.
+          </p>
+          <ul class="muted">
+            <li>
+              Only organisers can submit events. Participants and fans can tell us at <a
+                href="mailto:info@proswimworkouts.com">info@proswimworkouts.com</a
+              >.
+            </li>
+            <li>Competitions only, in the pool or open water.</li>
+            <li>The first day must be at least 3 days from today.</li>
+          </ul>
+        </div>
+        <div class="page-intro__text" data-view="signed-in" hidden>
+          <p class="muted">
+            Competitions only, in the pool or open water. We check every event before it appears on the site, usually
+            within a few days.
+          </p>
+          <p class="muted">
+            Signed in as <strong data-field="user-email"></strong> ·
+            <button type="button" class="link-button" data-action="sign-out">Sign out</button>
+          </p>
+        </div>
+      </div>
+
+      <noscript>
+        <div class="notice">
+          <p>
+            This page needs JavaScript to sign you in and send the event. You can also write to
+            <a href="mailto:info@proswimworkouts.com">info@proswimworkouts.com</a>.
+          </p>
+        </div>
+      </noscript>
+
+      <p class="muted" data-view="loading" role="status">Loading…</p>
+      <div class="notice notice--error" data-field="load-notice" role="alert" hidden></div>
+
+      <SignIn heading="Sign in to continue" />
+
+      <section class="panel" data-view="closed" aria-labelledby="closed-heading" hidden>
+        <div class="panel__body">
+          <h2 id="closed-heading" tabindex="-1">Submissions are paused</h2>
+          <p>
+            We're not taking new events at the moment. Please try again in a few days, or write to
+            <a href="mailto:info@proswimworkouts.com">info@proswimworkouts.com</a>.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel" data-view="blocked" aria-labelledby="blocked-heading" hidden>
+        <div class="panel__body">
+          <h2 id="blocked-heading" tabindex="-1">Your account can't submit events</h2>
+          <p>
+            If you think this is a mistake, write to <a href="mailto:info@proswimworkouts.com"
+              >info@proswimworkouts.com</a
+            >. You can still see your submissions on your <a href="/account">account page</a>.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel" data-view="waiting" aria-labelledby="waiting-heading" hidden>
+        <div class="panel__body">
+          <h2 id="waiting-heading" tabindex="-1">
+            You have <span data-field="waiting-count"></span> waiting for review
+          </h2>
+          <p>
+            You can send more once we've reviewed them. See their status on your <a href="/account">account page</a>.
+          </p>
+        </div>
+      </section>
+
+      <form class="panel" data-view="form" aria-labelledby="form-heading" novalidate hidden>
+        <div class="panel__body">
+          <div class="error-summary" data-field="summary" tabindex="-1" hidden></div>
+          <div class="notice notice--error" data-field="send-notice" role="alert" hidden></div>
+
+          <h2 id="form-heading" tabindex="-1">Competition details</h2>
+
+          <div class="field">
+            <label for="name">Event name <span class="field__required">(required)</span></label>
+            <p class="hint" id="name-hint">As the organiser writes it, e.g. Swiss Swimming Championships 2027</p>
+            <input id="name" name="name" type="text" maxlength="120" aria-describedby="name-hint" />
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="city">City <span class="field__required">(required)</span></label>
+              <input id="city" name="city" type="text" maxlength="80" autocomplete="address-level2" />
+            </div>
+            <div class="field">
+              <label for="country">Country <span class="field__required">(required)</span></label>
+              <select id="country" name="country">
+                <option value="">Choose a country</option>
+                {countries.map(([code, country]) => <option value={code}>{country.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <fieldset class="fieldset">
+            <legend>Dates</legend>
+            <p class="hint" id="dates-hint">
+              The first day must be at least 3 days from today<span data-field="earliest"></span>. For a one-day event,
+              use the same day twice.
+            </p>
+            <div class="field-row">
+              <div class="field">
+                <label for="dateStart">First day <span class="field__required">(required)</span></label>
+                <input id="dateStart" name="dateStart" type="date" aria-describedby="dates-hint" />
+              </div>
+              <div class="field">
+                <label for="dateEnd">Last day <span class="field__required">(required)</span></label>
+                <input id="dateEnd" name="dateEnd" type="date" />
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="notice notice--info duplicates" data-field="duplicates" hidden>
+            <Icon aria-hidden="true" name="lucide:info" size="1.25rem" />
+            <div class="duplicates__text">
+              <p class="duplicates__title">Is it one of these?</p>
+              <p>Already listed in <span data-field="duplicates-country"></span> on these dates.</p>
+              <p>
+                If it's the same competition and you organise it, claim it instead of sending it again. We'll check that
+                you're the organiser, then link it to your account. Fill in your role and tick the box below first.
+              </p>
+              <ul class="duplicates__list" data-field="duplicates-list"></ul>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="link">Event website <span class="field__required">(optional)</span></label>
+            <input
+              id="link"
+              name="link"
+              type="url"
+              inputmode="url"
+              maxlength="500"
+              autocomplete="url"
+              spellcheck="false"
+            />
+          </div>
+
+          <div class="field">
+            <label for="note">Anything we should know? <span class="field__required">(optional)</span></label>
+            <textarea id="note" name="note" rows="4" maxlength={NOTE_MAX} aria-describedby="note-count"></textarea>
+            <p class="hint" id="note-count">0 of 1,000 characters</p>
+            <p class="sr-only" role="status" data-field="note-status"></p>
+          </div>
+
+          <div class="field">
+            <label for="role">Your role <span class="field__required">(required)</span></label>
+            <p class="hint" id="role-hint">
+              Only organisers can submit events. Tell us how you're involved, e.g. Meet director, SC Basel
+            </p>
+            <input id="role" name="role" type="text" maxlength="120" aria-describedby="role-hint" />
+          </div>
+
+          <div class="check" data-error-anchor>
+            <input id="organiser" name="organiser" type="checkbox" aria-describedby="organiser-hint" />
+            <div>
+              <label for="organiser">
+                I organise this event or officially act for its organiser <span class="field__required">(required)</span
+                >
+              </label>
+              <p class="hint" id="organiser-hint">
+                We check this before we publish, for example against the event website. See the <a href="/terms"
+                  >terms of service</a
+                >.
+              </p>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="button">
+              <Icon aria-hidden="true" name="lucide:send" size="1.1rem" />
+              <span data-label>Send for review</span>
+            </button>
+            <p class="muted" data-field="waiting-line" hidden></p>
+          </div>
+          <p class="sr-only" role="status" data-field="send-status"></p>
+        </div>
+      </form>
+
+      <section class="panel" data-view="success" aria-labelledby="done-heading" hidden>
+        <div class="panel__body">
+          <div class="success__heading">
+            <span class="success__icon" aria-hidden="true"><Icon name="lucide:check" size="1.5rem" /></span>
+            <h2 id="done-heading" tabindex="-1" data-field="done-heading">Thanks, we've got it</h2>
+          </div>
+          <p>
+            <strong data-field="done-name"></strong> (<span data-field="done-details"></span>)
+            <span data-field="done-what">is now waiting for review.</span>
+          </p>
+          <p>
+            We'll email <strong data-field="done-email"></strong> as soon as it's reviewed, usually within a few days.
+            <span data-field="done-after">Once it's approved, it appears on the site straight away.</span>
+          </p>
+          <div class="actions">
+            <button type="button" class="button" data-action="another">Submit another</button>
+            <a class="button button--secondary" href="/account">See my submissions</a>
+            <a class="button button--quiet" href="/">Back to all events</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</DefaultLayout>
+
+<script>
+  import { initSubmit } from '../scripts/submit'
+
+  document.addEventListener('astro:page-load', initSubmit)
+</script>

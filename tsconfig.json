@@ -9,5 +9,6 @@
       "@utils/*": ["src/utils/*"],
       "@theme-config": ["theme.config.ts"]
     }
-  }
+  },
+  "exclude": ["dist", "supabase/functions"]
 }
