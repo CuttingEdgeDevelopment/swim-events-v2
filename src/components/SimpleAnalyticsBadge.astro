@@ -9,10 +9,11 @@
 
 const domain = 'swim-events.com'
 
-// Info badge colours from src/assets/scss/base/_swim.scss, logo in lane red
+// Info badge colours from src/assets/scss/base/_swim.scss, logo in lane red.
+// Same values and parameter names as the Simple Analytics badge builder.
 const colours = {
-  light: { background: 'e5f0fb', text: '0b4f94', logo: 'c8102e' },
-  dark: { background: '0f2a45', text: 'b3dcff', logo: 'f87171' },
+  light: { background: '#e5f0fb', text: '#0b4f94', logo: '#c8102e' },
+  dark: { background: '#0f2a45', text: '#b3dcff', logo: '#f87171' },
 }
 
 const badgeUrl = (mode: keyof typeof colours) =>
@@ -20,7 +21,7 @@ const badgeUrl = (mode: keyof typeof colours) =>
     mode,
     counter: 'false',
     radius: '8',
-    ...colours[mode],
+    ...Object.fromEntries(Object.entries(colours[mode]).map(([part, colour]) => [`${part}-${mode}`, colour])),
   })}`
 ---
 
@@ -57,8 +58,8 @@ const badgeUrl = (mode: keyof typeof colours) =>
 
   .sa-badge__image {
     display: block;
-    block-size: 2.5rem;
     inline-size: auto;
+    block-size: 2.5rem;
   }
 
   .sa-badge__image--dark {
