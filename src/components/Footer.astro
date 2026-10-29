@@ -1,5 +1,6 @@
 ---
 import { Link } from 'accessible-astro-components'
+import SimpleAnalyticsBadge from './SimpleAnalyticsBadge.astro'
 
 const currentYear = new Date().getFullYear()
 ---
@@ -12,12 +13,15 @@ const currentYear = new Date().getFullYear()
         <Link href="https://cutting-edge.dev/" isExternal>Cutting Edge Development Studio</Link>
         <span class="ms-1">by Nicolas Messer</span>
       </p>
-      <nav aria-label="Legal">
-        <ul class="footer__links">
-          <li><a href="/privacy">Privacy policy</a></li>
-          <li><a href="/terms">Terms of service</a></li>
-        </ul>
-      </nav>
+      <div class="footer__end">
+        <nav aria-label="Legal">
+          <ul class="footer__links">
+            <li><a href="/privacy">Privacy policy</a></li>
+            <li><a href="/terms">Terms of service</a></li>
+          </ul>
+        </nav>
+        <SimpleAnalyticsBadge />
+      </div>
     </div>
   </section>
 </footer>
@@ -32,11 +36,23 @@ const currentYear = new Date().getFullYear()
     font-size: 1rem; // a step under the 18px body text, as in the mockup
   }
 
-  // copyright on the left, legal links on the right, stacked on narrow screens
+  // copyright on the left, legal links and the analytics badge on the right, stacked on narrow screens
   .footer__content {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
+    align-items: center;
+    gap: var(--space-xs) var(--space-l);
+
+    p {
+      margin: 0;
+    }
+  }
+
+  .footer__end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: var(--space-xs) var(--space-l);
   }
 

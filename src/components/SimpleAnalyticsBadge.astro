@@ -1,0 +1,78 @@
+---
+// Simple Analytics badge, required on the free plan (https://www.simpleanalytics.com/badges).
+// The link must keep pointing to Simple Analytics. Colours, corner radius and the
+// counter are the customisations the badge service offers as URL parameters.
+//
+// The snippet Simple Analytics suggests switches on prefers-color-scheme, which ignores
+// the site's own dark mode toggle, so both images are rendered and the .darkmode class
+// picks one. The hidden image is lazy loaded, so browsers do not fetch it.
+
+const domain = 'swim-events.com'
+
+// Footer background (--surface-color) so the badge blends in, info badge text, logo in lane red.
+// Same values and parameter names as the Simple Analytics badge builder.
+const colours = {
+  light: { background: '#ffffff', text: '#0b4f94', logo: '#c8102e' },
+  dark: { background: '#122334', text: '#b3dcff', logo: '#f87171' },
+}
+
+const badgeUrl = (mode: keyof typeof colours) =>
+  `https://simpleanalyticsbadges.com/${domain}?${new URLSearchParams({
+    mode,
+    counter: 'false',
+    radius: '8',
+    ...Object.fromEntries(Object.entries(colours[mode]).map(([part, colour]) => [`${part}-${mode}`, colour])),
+  })}`
+---
+
+<a
+  class="sa-badge"
+  href={`https://www.simpleanalytics.com/?utm_source=${domain}&utm_content=badge`}
+  referrerpolicy="origin"
+  target="_blank"
+>
+  <img
+    class="sa-badge__image sa-badge__image--light"
+    src={badgeUrl('light')}
+    alt="Simple Analytics"
+    loading="lazy"
+    referrerpolicy="no-referrer"
+    crossorigin="anonymous"
+  />
+  <img
+    class="sa-badge__image sa-badge__image--dark"
+    src={badgeUrl('dark')}
+    alt="Simple Analytics"
+    loading="lazy"
+    referrerpolicy="no-referrer"
+    crossorigin="anonymous"
+  />
+  <span class="sr-only">(opens in a new tab)</span>
+</a>
+
+<style lang="scss">
+  .sa-badge {
+    display: inline-flex;
+    border-radius: var(--radius-m);
+  }
+
+  .sa-badge__image {
+    display: block;
+    inline-size: auto;
+    block-size: 2.5rem;
+  }
+
+  .sa-badge__image--dark {
+    display: none;
+  }
+
+  :global(.darkmode) {
+    .sa-badge__image--light {
+      display: none;
+    }
+
+    .sa-badge__image--dark {
+      display: block;
+    }
+  }
+</style>
