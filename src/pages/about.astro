@@ -1,47 +1,42 @@
 ---
 import LegalLayout from '@layouts/LegalLayout.astro'
+import { Image } from 'astro:assets'
 import { Link } from 'accessible-astro-components'
+import portrait from '@assets/img/nicolas-messer.jpg'
 ---
 
 <LegalLayout
   title="About"
-  description="What Swim Events Calendar is, who runs it and how swimming competitions get listed."
+  description="Swim Events Calendar is part of ProSwimWorkouts: who runs it and how events get listed."
 >
   <p>
-    Swim Events Calendar lists swimming competitions in Switzerland and abroad, with a countdown to each one. Swimmers,
-    coaches and parents can see at a glance what's coming up, what's happening now and how many days are left.
+    Swim Events Calendar lists swimming competitions in Switzerland and abroad, with a countdown to each one, so
+    swimmers, coaches and parents can see at a glance what's coming up.
   </p>
 
-  <h2>Who runs it</h2>
+  <figure class="about__portrait">
+    <Image
+      src={portrait}
+      alt="Nicolas Messer in a black Swim Events T-shirt, in front of a paper-cut illustration of two swimmers, a lane rope, a stopwatch and a starting block."
+      widths={[640, 960, 1280, 1600]}
+      sizes="(min-width: 46rem) 42rem, 100vw"
+      loading="eager"
+    />
+    <figcaption>Nicolas Messer, owner of ProSwimWorkouts and Swim Events Calendar</figcaption>
+  </figure>
+
+  <h2>Part of ProSwimWorkouts</h2>
   <p>
-    swim-events.com is part of <Link href="https://proswimworkouts.com/" isExternal>ProSwimWorkouts</Link>, a sole
-    proprietorship of Nicolas Messer in Gümligen, Switzerland. The site is free to use, and you don't need an account to
-    browse it.
+    Swim Events Calendar is part of <Link href="https://proswimworkouts.com/" isExternal>ProSwimWorkouts</Link>, the
+    trusted source for swim coaching professionals, with more than 3,000 workouts shared by coaches around the world.
+    ProSwimWorkouts helps you plan the training; Swim Events Calendar shows the competitions it builds up to.
   </p>
 
   <h2>How events get listed</h2>
   <p>
-    We add most events ourselves, from what the organisers publish on their websites and in their competition
-    announcements. Organisers can also <a href="/submit">submit their own competition</a> or claim one we added. We check
-    every submission before it appears on the site.
-  </p>
-  <p>
-    For now, the calendar lists competitions only. Dates and venues can change at short notice, so always check the
-    organiser's website before you travel, enter or book anything.
-  </p>
-
-  <h2>Finding an event</h2>
-  <ul>
-    <li>Search by event, city or country, and filter by time period or country.</li>
-    <li>Add any upcoming event to your calendar.</li>
-    <li>Past events are listed by year, most recent first.</li>
-  </ul>
-
-  <h2>Design and development</h2>
-  <p>
-    The site is designed and built by
-    <Link href="https://cutting-edge.dev/" isExternal>Cutting Edge Development Studio</Link>, with care for
-    accessibility: it works with a keyboard and screen readers, in light and dark mode, and on small screens.
+    We add most events from what organisers publish. Organisers can also
+    <a href="/submit">submit their own competition</a>, and we check every submission before it goes live. Dates can
+    change, so always check the organiser's website before you travel or enter.
   </p>
 
   <h2>Contact</h2>
@@ -50,3 +45,22 @@ import { Link } from 'accessible-astro-components'
     <a href="mailto:info@proswimworkouts.com">info@proswimworkouts.com</a>.
   </p>
 </LegalLayout>
+
+<style lang="scss">
+  .about__portrait {
+    margin-inline: 0;
+    margin-block: var(--space-m) 0;
+
+    :global(img) {
+      border-radius: var(--radius-h);
+      inline-size: 100%;
+      block-size: auto;
+    }
+
+    figcaption {
+      margin-block-start: var(--space-2xs);
+      color: var(--text-muted-color);
+      font-size: var(--font-size--1);
+    }
+  }
+</style>
