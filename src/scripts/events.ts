@@ -46,6 +46,12 @@ let updatedAt = ''
 let filters: EventFilters = NO_FILTERS
 /** The year picked under Past; empty for the most recent one (see `pastYearFromUrl`). */
 let pastYear = ''
+/** How many pages of past events show; back to one when the year or a filter changes. */
+let pastPages = 1
+let pastListKey = ''
+
+/** Past events per page: fewer on small screens, where each takes more room. */
+const pastPageSize = () => (matchMedia('(min-width: 768px)').matches ? 20 : 10)
 
 function field<T extends HTMLElement = HTMLElement>(root: Element | DocumentFragment, name: string): T {
   return root.querySelector<T>(`[data-field="${name}"]`)!
@@ -385,12 +391,19 @@ function render(): void {
   const past = shown.filter((event) => kindOf(event) === 'past').reverse()
   const year = renderYearChips(past)
   const pastList = year === 'all' ? past : past.filter((event) => startYear(event) === year)
+  const listKey = JSON.stringify([year, filters])
+  if (listKey !== pastListKey) {
+    pastListKey = listKey
+    pastPages = 1
+  }
+  const pastShown = pastList.slice(0, pastPages * pastPageSize())
 
   const upcomingList = renderFeatured(live, upcoming, today)
 
   renderToday(today)
   renderGroups('upcoming-events', 'event-card-template', renderCard, upcomingList, startMonth, today)
-  renderGroups('past-events', 'past-row-template', renderPastRow, pastList, startYear, today)
+  renderGroups('past-events', 'past-row-template', renderPastRow, pastShown, startYear, today)
+  renderShowMore(pastList.length - pastShown.length)
   // With one year picked, its chip already says which year; the heading stays for screen readers
   document
     .querySelectorAll('#past-events .event-group__heading')
@@ -563,7 +576,27 @@ function renderYearChip(year: string, count: number, checked: boolean): HTMLElem
   return item
 }
 
+function renderShowMore(hiddenCount: number): void {
+  const button = document.getElementById('past-more')
+  if (!button) return
+  button.hidden = hiddenCount <= 0
+  field(button, 'count').textContent = `(${hiddenCount} more ${hiddenCount === 1 ? 'event' : 'events'})`
+}
+
+/** Shows the next page and moves focus to its first event, so keyboard users carry on there. */
+function showMorePast(): void {
+  const shownBefore = document.querySelectorAll('#past-events .past-row').length
+  pastPages++
+  render()
+  const first = document.querySelectorAll<HTMLElement>('#past-events .past-row')[shownBefore]
+  if (first) {
+    first.tabIndex = -1
+    first.focus()
+  }
+}
+
 function initYearFilter(): void {
+  document.getElementById('past-more')?.addEventListener('click', showMorePast)
   pastYear = pastYearFromUrl(new URL(location.href))
   document.getElementById('year-filter')?.addEventListener('change', (event) => {
     const input = event.target as HTMLInputElement
