@@ -39,11 +39,13 @@ import portrait from '@assets/img/nicolas-messer.jpg'
     change, so always check the organiser's website before you travel or enter.
   </p>
 
-  <h2>Contact</h2>
-  <p>
-    Questions, a missing event or a correction? Write to
-    <a href="mailto:info@proswimworkouts.com">info@proswimworkouts.com</a>.
-  </p>
+  <section class="about__contact" aria-labelledby="contact-heading">
+    <h2 id="contact-heading">Contact</h2>
+    <p>
+      Questions, a missing event or a correction? Write to
+      <a href="mailto:info@proswimworkouts.com">info@proswimworkouts.com</a>.
+    </p>
+  </section>
 </LegalLayout>
 
 <style lang="scss">
@@ -61,6 +63,23 @@ import portrait from '@assets/img/nicolas-messer.jpg'
       margin-block-start: var(--space-2xs);
       color: var(--text-muted-color);
       font-size: var(--font-size--1);
+    }
+  }
+
+  // The contact details in a card, like the panels on the home page
+  .about__contact {
+    margin-block-start: var(--space-xl);
+    border: 1px solid var(--border-subtle-color);
+    border-radius: var(--radius-h);
+    background-color: var(--surface-color);
+    padding: var(--space-m);
+
+    h2 {
+      margin: 0;
+    }
+
+    p {
+      margin-block: var(--space-2xs) 0;
     }
   }
 </style>
