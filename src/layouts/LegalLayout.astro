@@ -51,8 +51,9 @@ const updatedLabel =
     padding-block: var(--space-l) var(--space-xl);
   }
 
-  // one readable column, as on the submit form
+  // one readable column in the middle of the page; the text itself stays left-aligned
   .legal__text {
+    margin-inline: auto;
     max-inline-size: 42rem;
 
     :global(h2) {
