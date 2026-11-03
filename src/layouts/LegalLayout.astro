@@ -11,19 +11,21 @@ interface Props {
    */
   description: string
   /**
-   * When the text last changed materially, as YYYY-MM-DD
+   * When the text last changed materially, as YYYY-MM-DD; leave out on pages that need no date
    */
-  updated: string
+  updated?: string
 }
 
 const { title, description, updated } = Astro.props
 
-const updatedLabel = new Date(`${updated}T00:00:00Z`).toLocaleDateString('en-GB', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  timeZone: 'UTC',
-})
+const updatedLabel =
+  updated &&
+  new Date(`${updated}T00:00:00Z`).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
 ---
 
 <DefaultLayout title={title} description={description}>
@@ -31,7 +33,13 @@ const updatedLabel = new Date(`${updated}T00:00:00Z`).toLocaleDateString('en-GB'
     <div class="container">
       <div class="legal__text space-content">
         <h1 class="legal__title">{title}</h1>
-        <p class="legal__updated">Last updated <time datetime={updated}>{updatedLabel}</time></p>
+        {
+          updated && (
+            <p class="legal__updated">
+              Last updated <time datetime={updated}>{updatedLabel}</time>
+            </p>
+          )
+        }
         <slot />
       </div>
     </div>

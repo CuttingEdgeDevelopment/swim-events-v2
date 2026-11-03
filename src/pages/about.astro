@@ -1,0 +1,52 @@
+---
+import LegalLayout from '@layouts/LegalLayout.astro'
+import { Link } from 'accessible-astro-components'
+---
+
+<LegalLayout
+  title="About"
+  description="What Swim Events Calendar is, who runs it and how swimming competitions get listed."
+>
+  <p>
+    Swim Events Calendar lists swimming competitions in Switzerland and abroad, with a countdown to each one. Swimmers,
+    coaches and parents can see at a glance what's coming up, what's happening now and how many days are left.
+  </p>
+
+  <h2>Who runs it</h2>
+  <p>
+    swim-events.com is part of <Link href="https://proswimworkouts.com/" isExternal>ProSwimWorkouts</Link>, a sole
+    proprietorship of Nicolas Messer in Gümligen, Switzerland. The site is free to use, and you don't need an account to
+    browse it.
+  </p>
+
+  <h2>How events get listed</h2>
+  <p>
+    We add most events ourselves, from what the organisers publish on their websites and in their competition
+    announcements. Organisers can also <a href="/submit">submit their own competition</a> or claim one we added. We check
+    every submission before it appears on the site.
+  </p>
+  <p>
+    For now, the calendar lists competitions only. Dates and venues can change at short notice, so always check the
+    organiser's website before you travel, enter or book anything.
+  </p>
+
+  <h2>Finding an event</h2>
+  <ul>
+    <li>Search by event, city or country, and filter by time period or country.</li>
+    <li>Add any upcoming event to your calendar.</li>
+    <li>Past events are listed by year, most recent first.</li>
+  </ul>
+
+  <h2>Design and development</h2>
+  <p>
+    The site is designed and built by
+    <Link href="https://cutting-edge.dev/" isExternal>Cutting Edge Development Studio</Link>, with care for
+    accessibility: it works with a keyboard and screen readers, in light and dark mode, and on small screens.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions, a missing event or a correction? Write to
+    <a href="mailto:info@proswimworkouts.com">info@proswimworkouts.com</a>.
+  </p>
+</LegalLayout>

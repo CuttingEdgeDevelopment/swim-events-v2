@@ -5,8 +5,8 @@ export default defineThemeConfig({
   name: 'Swim Events',
   id: 'swim-events-countdown',
   seo: {
-    title: 'Swim Events Countdown',
-    description: 'Countdowns to upcoming swimming events.',
+    title: 'Swim Events Calendar',
+    description: 'Upcoming swimming competitions, with a countdown to each one.',
     author: 'Nicolas Messer',
     image: previewImage,
   },
