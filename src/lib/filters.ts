@@ -158,3 +158,29 @@ export function groupBy<T>(items: T[], label: (item: T) => string): { label: str
   }
   return groups
 }
+
+/**
+ * The year picked under Past: a year ("2025"), "all" for every year, or empty for the most
+ * recent year with past events, which is what the Past tab opens on.
+ */
+export function pastYearFromUrl(url: URL): string {
+  const value = url.searchParams.get('year') ?? ''
+  return value === 'all' || /^\d{4}$/.test(value) ? value : ''
+}
+
+export function pastYearToUrl(url: URL, year: string): URL {
+  const next = new URL(url)
+  if (year) next.searchParams.set('year', year)
+  else next.searchParams.delete('year')
+  return next
+}
+
+/** The start years of `events` with how many events each has, newest first. */
+export function eventYears(events: SwimEvent[]): { year: string; count: number }[] {
+  const years = new Map<string, number>()
+  for (const event of events) {
+    const year = event.dateStart.slice(0, 4)
+    years.set(year, (years.get(year) ?? 0) + 1)
+  }
+  return [...years].map(([year, count]) => ({ year, count })).sort((a, b) => b.year.localeCompare(a.year))
+}
