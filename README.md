@@ -1,11 +1,11 @@
-# Swim Events Countdown (v2)
+# Swim Events Calendar (v2)
 
 A small site that shows countdowns to upcoming swimming events. This is version 2, rebuilt on the
 [Accessible Astro Starter](https://github.com/incluud/accessible-astro-starter) (barebones preset). Version 1 (Vue + Parcel)
 lives in [CuttingEdgeDevelopment/swim-events](https://github.com/CuttingEdgeDevelopment/swim-events).
 
 ### Preview
-<img src="src/assets/img/countdown-screenshot.png" alt="Swim Events Countdown in light mode on a desktop browser, with the next event and the upcoming list." width="640">
+<img src="src/assets/img/countdown-screenshot.png" alt="Swim Events Calendar in light mode on a desktop browser, with the next event and the upcoming list." width="640">
 <img src="src/assets/img/countdown-screenshot-mobile.png" alt="The same page on a phone." width="180">
 
 <img src="src/assets/img/countdown-screenshot-dark.png" alt="The page in dark mode." width="640">

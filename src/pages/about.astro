@@ -1,0 +1,85 @@
+---
+import LegalLayout from '@layouts/LegalLayout.astro'
+import { Image } from 'astro:assets'
+import { Link } from 'accessible-astro-components'
+import portrait from '@assets/img/nicolas-messer.jpg'
+---
+
+<LegalLayout
+  title="About"
+  description="Swim Events Calendar is part of ProSwimWorkouts: who runs it and how events get listed."
+>
+  <p>
+    Swim Events Calendar lists swimming competitions in Switzerland and abroad, with a countdown to each one, so
+    swimmers, coaches and parents can see at a glance what's coming up.
+  </p>
+
+  <figure class="about__portrait">
+    <Image
+      src={portrait}
+      alt="Nicolas Messer in a black Swim Events T-shirt, in front of a paper-cut illustration of two swimmers, a lane rope, a stopwatch and a starting block."
+      widths={[640, 960, 1280, 1600]}
+      sizes="(min-width: 46rem) 42rem, 100vw"
+      loading="eager"
+    />
+    <figcaption>Nicolas Messer, owner of ProSwimWorkouts and Swim Events Calendar</figcaption>
+  </figure>
+
+  <h2>Part of ProSwimWorkouts</h2>
+  <p>
+    Swim Events Calendar is part of <Link href="https://proswimworkouts.com/" isExternal>ProSwimWorkouts</Link>, the
+    trusted source for swim coaching professionals, with more than 3,000 workouts shared by coaches around the world.
+    ProSwimWorkouts helps you plan the training; Swim Events Calendar shows the competitions it builds up to.
+  </p>
+
+  <h2>How events get listed</h2>
+  <p>
+    We add most events from what organisers publish. Organisers can also
+    <a href="/submit">submit their own competition</a>, and we check every submission before it goes live. Dates can
+    change, so always check the organiser's website before you travel or enter.
+  </p>
+
+  <section class="about__contact" aria-labelledby="contact-heading">
+    <h2 id="contact-heading">Contact</h2>
+    <p>
+      Questions, a missing event or a correction? Write to
+      <a href="mailto:info@proswimworkouts.com">info@proswimworkouts.com</a>.
+    </p>
+  </section>
+</LegalLayout>
+
+<style lang="scss">
+  .about__portrait {
+    margin-inline: 0;
+    margin-block: var(--space-m) 0;
+
+    :global(img) {
+      border-radius: var(--radius-h);
+      inline-size: 100%;
+      block-size: auto;
+    }
+
+    figcaption {
+      margin-block-start: var(--space-2xs);
+      color: var(--text-muted-color);
+      font-size: var(--font-size--1);
+    }
+  }
+
+  // The contact details in a card, like the panels on the home page
+  .about__contact {
+    margin-block-start: var(--space-xl);
+    border: 1px solid var(--border-subtle-color);
+    border-radius: var(--radius-h);
+    background-color: var(--surface-color);
+    padding: var(--space-m);
+
+    h2 {
+      margin: 0;
+    }
+
+    p {
+      margin-block: var(--space-2xs) 0;
+    }
+  }
+</style>

@@ -8,13 +8,19 @@ const currentYear = new Date().getFullYear()
 <footer>
   <section class="py-8">
     <div class="footer__content container">
-      <p>
-        Copyright &copy; 2025-{currentYear}
-        <Link href="https://cutting-edge.dev/" isExternal>Cutting Edge Development Studio</Link>
-        <span class="ms-1">by Nicolas Messer</span>
-      </p>
-      <nav aria-label="Legal">
+      <div class="footer__owner">
+        <p>
+          Copyright &copy; 2025-{currentYear}
+          <Link href="https://proswimworkouts.com/" isExternal>ProSwimWorkouts</Link>
+        </p>
+        <p>
+          Design and development by
+          <Link href="https://cutting-edge.dev/" isExternal>Cutting Edge Development Studio</Link>
+        </p>
+      </div>
+      <nav aria-label="About and legal">
         <ul class="footer__links">
+          <li><a href="/about">About</a></li>
           <li><a href="/privacy">Privacy policy</a></li>
           <li><a href="/terms">Terms of service</a></li>
         </ul>
@@ -47,6 +53,12 @@ const currentYear = new Date().getFullYear()
     p {
       margin: 0;
     }
+  }
+
+  .footer__owner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
   }
 
   .footer__credit {
