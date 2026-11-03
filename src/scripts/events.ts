@@ -27,6 +27,7 @@ import {
 import { COUNTRIES } from '../lib/countries'
 import { flagUrl, listLocation, parseLocation, shortLocation } from '../lib/locations'
 import { fetchEvents, type SwimEvent } from '../lib/supabase'
+import { initShare, shareButton } from './share'
 
 const LOCALE = 'en-US'
 // Day-month-year, as in the design ("18 October 2026")
@@ -49,6 +50,10 @@ let pastYear = ''
 /** How many pages of past events show; back to one when the year or a filter changes. */
 let pastPages = 1
 let pastListKey = ''
+let hashBound = false
+let highlightTimer: ReturnType<typeof setTimeout> | undefined
+/** How long the event a shared link points to stays outlined; the fade in ShareMenu.astro matches. */
+const HIGHLIGHT_FOR_MS = 3000
 
 /** Past events per page: fewer on small screens, where each takes more room. */
 const pastPageSize = () => (matchMedia('(min-width: 768px)').matches ? 20 : 10)
@@ -216,6 +221,22 @@ function fillPlace(container: HTMLElement, event: SwimEvent, text: string): void
   container.replaceChildren(...(flag ? [flag] : []), text)
 }
 
+/** The link to `event` on the home page, e.g. https://swim-events.com/#event-123 */
+const eventUrl = (event: SwimEvent) => `${location.origin}/#event-${event.id}`
+
+/** A Share button after "Add to calendar", for a message like "Geneva Swim Meet, Geneva, Switzerland, 8–10 Nov 2026". */
+function fillShare(container: HTMLElement, event: SwimEvent): void {
+  const text = [event.name, listLocation(event), rangeText(event.dateStart, event.dateEnd)].filter(Boolean).join(', ')
+  const button = shareButton({ title: event.name, text, url: eventUrl(event) }, event.name)
+  if (button) container.append(button)
+}
+
+/** Every card and row gets the event's id, which a shared link (#event-123) points to. */
+function setEventId(root: DocumentFragment, event: SwimEvent): void {
+  const item = root.firstElementChild as HTMLElement | null
+  if (item) item.id = `event-${event.id}`
+}
+
 function renderCard(template: HTMLTemplateElement, event: SwimEvent, today: CalendarDate): DocumentFragment {
   const card = template.content.cloneNode(true) as DocumentFragment
   const timing = eventTiming(event.dateStart, event.dateEnd, today)
@@ -224,6 +245,8 @@ function renderCard(template: HTMLTemplateElement, event: SwimEvent, today: Cale
   fillPlace(field(card, 'place'), event, listLocation(event))
   fillDates(field(card, 'dates'), event)
   fillCalendar(field(card, 'calendar'), event)
+  fillShare(field(card, 'actions'), event)
+  setEventId(card, event)
 
   const badge = field(card, 'badge')
   const number = field(card, 'number')
@@ -263,6 +286,8 @@ function renderPastRow(template: HTMLTemplateElement, event: SwimEvent, today: C
   fillPlace(field(row, 'place'), event, listLocation(event))
   fillDates(field(row, 'dates'), event)
   field(row, 'finished').textContent = daysAgo === 1 ? 'Finished yesterday' : `Finished ${daysAgo} days ago`
+  fillShare(field(row, 'actions'), event)
+  setEventId(row, event)
   return row
 }
 
@@ -320,6 +345,8 @@ function renderLiveCard(template: HTMLTemplateElement, event: SwimEvent, today: 
   fillPlace(field(card, 'place'), event, shortLocation(event))
   fillDates(field(card, 'dates'), event)
   fillCalendar(field(card, 'calendar'), event)
+  fillShare(field(card, 'actions'), event)
+  setEventId(card, event)
   return card
 }
 
@@ -330,6 +357,8 @@ function renderNextCard(template: HTMLTemplateElement, event: SwimEvent, daysToG
   fillPlace(field(card, 'place'), event, shortLocation(event))
   fillDates(field(card, 'dates'), event)
   fillCalendar(field(card, 'calendar'), event)
+  fillShare(field(card, 'actions'), event)
+  setEventId(card, event)
   field(card, 'number').textContent = String(daysToGo)
   field(card, 'unit').textContent = daysToGo === 1 ? 'day to go' : 'days to go'
   return card
@@ -627,6 +656,15 @@ function syncDateFields(form: HTMLFormElement): void {
   ;(form.elements.namedItem('to') as HTMLInputElement).min = filters.from
 }
 
+/** Puts `filters` into the search, When and date fields. The country chips follow on render. */
+function fillFilterForm(form: HTMLFormElement): void {
+  ;(form.elements.namedItem('q') as HTMLInputElement).value = filters.query
+  ;(form.elements.namedItem('when') as HTMLSelectElement).value = filters.period
+  ;(form.elements.namedItem('from') as HTMLInputElement).value = filters.from
+  ;(form.elements.namedItem('to') as HTMLInputElement).value = filters.to
+  syncDateFields(form)
+}
+
 function applyFilters(form: HTMLFormElement, next: EventFilters): void {
   filters = next
   syncDateFields(form)
@@ -642,11 +680,7 @@ function initFilters(): void {
   // drops unknown countries and resolves aliases in a shared link (?country=mco becomes MON)
   history.replaceState(history.state, '', filtersToUrl(new URL(location.href), filters))
   const query = form.elements.namedItem('q') as HTMLInputElement
-  query.value = filters.query
-  ;(form.elements.namedItem('when') as HTMLSelectElement).value = filters.period
-  ;(form.elements.namedItem('from') as HTMLInputElement).value = filters.from
-  ;(form.elements.namedItem('to') as HTMLInputElement).value = filters.to
-  syncDateFields(form)
+  fillFilterForm(form)
 
   // The country chips follow the open tab
   const pastTab = document.getElementById('past-tab')
@@ -671,6 +705,67 @@ function initFilters(): void {
   })
 }
 
+/** The event id in a shared link (#event-123), or null. */
+function sharedEventId(): number | null {
+  const match = /^#event-(\d+)$/.exec(location.hash)
+  return match ? Number(match[1]) : null
+}
+
+/**
+ * Shows the event a shared link points to: clears filters that hide it, opens its tab,
+ * year and page of past events, then scrolls to it, outlines it for a moment and moves
+ * focus there so screen readers start reading at the event.
+ */
+function revealSharedEvent(): void {
+  const id = sharedEventId()
+  const event = events.find((item) => item.id === id)
+  if (!event) return
+
+  const today = localToday()
+  const form = document.getElementById('event-filters') as HTMLFormElement | null
+  if (form && !matchesFilters(event, filters, today)) {
+    filters = NO_FILTERS
+    fillFilterForm(form)
+    history.replaceState(history.state, '', filtersToUrl(new URL(location.href), filters))
+  }
+
+  const isPast = eventTiming(event.dateStart, event.dateEnd, today).kind === 'past'
+  const tab = document.getElementById(isPast ? 'past-tab' : 'upcoming-tab')
+  if (tab?.getAttribute('aria-selected') !== 'true') tab?.click()
+
+  if (isPast) {
+    // Most recently finished first, as in the list
+    const past = events
+      .filter((item) => eventTiming(item.dateStart, item.dateEnd, today).kind === 'past')
+      .filter((item) => matchesFilters(item, filters, today))
+      .reverse()
+    const year = startYear(event)
+    pastYear = year === eventYears(past)[0]?.year ? '' : year
+    history.replaceState(history.state, '', pastYearToUrl(new URL(location.href), pastYear))
+    render()
+    const index = past.filter((item) => startYear(item) === year).indexOf(event)
+    pastPages = Math.floor(index / pastPageSize()) + 1
+  }
+  render()
+
+  // after the tab switch has re-rendered the lists
+  requestAnimationFrame(() => {
+    const target = document.getElementById(`event-${event.id}`)
+    if (!target) return
+    const smooth = matchMedia('(prefers-reduced-motion: no-preference)').matches
+    const reduce = document.documentElement.classList.contains('reduce-motion')
+    target.tabIndex = -1
+    target.focus({ preventScroll: true })
+    target.scrollIntoView({ block: 'center', behavior: smooth && !reduce ? 'smooth' : 'auto' })
+    target.classList.remove('is-shared-target')
+    // restart the outline when the same link is opened again
+    void target.offsetWidth
+    target.classList.add('is-shared-target')
+    clearTimeout(highlightTimer)
+    highlightTimer = setTimeout(() => target.classList.remove('is-shared-target'), HIGHLIGHT_FOR_MS)
+  })
+}
+
 /** First load failed: no warning, just a way to try again. */
 function renderLoadFailed(): void {
   const message = () => [paragraph('No events to show yet. Use ', strong(BUTTON_LABEL), ' to try loading them again.')]
@@ -687,10 +782,12 @@ async function loadEvents(): Promise<void> {
 
   try {
     events = await fetchEvents()
+    const firstLoad = !loaded
     loaded = true
     updatedAt = time.format(new Date())
     render()
     setUpdatedStatus()
+    if (firstLoad) revealSharedEvent()
   } catch (error) {
     console.error('Error fetching events:', error)
     // Keep what is already on screen; only an empty page gets a message
@@ -711,6 +808,13 @@ export function initEvents(): void {
     const mode = calendarLightMode()
     document.querySelectorAll('add-to-calendar-button').forEach((button) => button.setAttribute('light-mode', mode))
   })
+  if (!hashBound) {
+    hashBound = true
+    window.addEventListener('hashchange', () => {
+      if (loaded && document.getElementById('upcoming-events')) revealSharedEvent()
+    })
+  }
+  initShare()
   initFilters()
   initYearFilter()
   renderToday(localToday())

@@ -1,0 +1,197 @@
+---
+import { Icon } from 'astro-icon/components'
+
+/**
+ * ShareMenu Component
+ *
+ * @description The parts of a Share button that `src/scripts/share.ts` fills in: the button
+ * itself, the small menu it opens where the browser has no share sheet of its own, and a
+ * status line that tells screen readers "Link copied".
+ */
+---
+
+<template id="share-button-template">
+  <div class="share">
+    <button type="button" class="share-button">
+      <span class="share-button__icon" data-field="share-icon"
+        ><Icon aria-hidden="true" name="lucide:share-2" size="1.1em" /></span
+      >
+      <span class="share-button__icon" data-field="copied-icon" hidden
+        ><Icon aria-hidden="true" name="lucide:check" size="1.1em" /></span
+      >
+      <span data-field="share-label">Share</span><span class="sr-only" data-field="share-name"></span>
+    </button>
+  </div>
+</template>
+
+<template id="share-menu-template">
+  <ul class="share-menu">
+    <li>
+      <button type="button" class="share-menu__item" data-share="copy">
+        <Icon aria-hidden="true" name="lucide:link" size="1.1em" />
+        Copy link
+      </button>
+    </li>
+    <li>
+      {/* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid -- href is set by src/scripts/share.ts */}
+      <a class="share-menu__item" data-share="whatsapp" target="_blank" rel="noopener noreferrer">
+        <Icon aria-hidden="true" name="lucide:message-circle" size="1.1em" />
+        WhatsApp<span class="sr-only"> (opens in new tab)</span>
+      </a>
+    </li>
+    <li>
+      {/* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid -- href is set by src/scripts/share.ts */}
+      <a class="share-menu__item" data-share="email">
+        <Icon aria-hidden="true" name="lucide:mail" size="1.1em" />
+        Email
+      </a>
+    </li>
+  </ul>
+</template>
+
+<p id="share-status" class="sr-only" role="status"></p>
+
+<style lang="scss" is:global>
+  // "Add to calendar" and "Share" side by side under an event
+  .event-actions {
+    display: flex;
+    column-gap: var(--space-m);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .share {
+    position: relative;
+  }
+
+  // A quiet icon + text action, like "Add to calendar" next to it
+  .share-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    cursor: pointer;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: transparent;
+    padding: 0 2px;
+    min-block-size: 44px;
+    color: var(--pool-color);
+    font-weight: 700;
+    font-size: 1rem;
+    font-family: var(--font-body);
+
+    &:hover {
+      color: var(--pool-hover-color);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--outline-color);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 2px var(--focus-halo);
+    }
+
+    .share-button__icon {
+      display: inline-flex;
+
+      &[hidden] {
+        display: none;
+      }
+    }
+  }
+
+  // White on the blue featured cards
+  .featured-card .share-button {
+    color: var(--featured-text);
+
+    &:hover {
+      color: var(--featured-text);
+    }
+  }
+
+  .share-menu {
+    position: absolute;
+    z-index: 10;
+    margin: 0;
+    inset-block-start: 100%;
+    inset-inline-start: 0;
+    box-shadow: 0 8px 24px hsl(210deg 50% 8% / 0.18);
+    border: 1px solid var(--border-subtle-color);
+    border-radius: var(--radius-s);
+    background-color: var(--surface-color);
+    padding: var(--space-3xs);
+    min-inline-size: 11rem;
+    list-style: none;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .share-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    cursor: pointer;
+    border: 0;
+    border-radius: var(--radius-s);
+    background: transparent;
+    padding: 0 var(--space-xs);
+    inline-size: 100%;
+    min-block-size: 44px;
+    color: var(--text-color);
+    font-size: 1rem;
+    font-family: var(--font-body);
+    text-align: start;
+    text-decoration: none;
+
+    &:hover {
+      background-color: var(--badge-info-bg);
+      color: var(--text-color);
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--outline-color);
+      outline-offset: -3px;
+    }
+
+    @media (forced-colors: active) {
+      &:hover {
+        outline: 1px solid CanvasText;
+      }
+    }
+  }
+
+  // The event a shared link points to, outlined for a few seconds after the page scrolls to it.
+  // A pseudo-element, because the reset removes outlines from anything with tabindex="-1".
+  .is-shared-target {
+    position: relative;
+
+    &::after {
+      position: absolute;
+      inset: -6px;
+      border: 3px solid var(--pool-color);
+      border-radius: calc(var(--radius-h) + 6px);
+      pointer-events: none;
+      content: '';
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html:not(.reduce-motion) .is-shared-target::after {
+      animation: shared-target 3s ease-out forwards;
+    }
+  }
+
+  @keyframes shared-target {
+    0%,
+    70% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+    }
+  }
+</style>

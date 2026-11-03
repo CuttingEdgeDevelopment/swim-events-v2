@@ -2,6 +2,7 @@
 import DefaultLayout from '@layouts/DefaultLayout.astro'
 import EventCardTemplate from '@components/EventCardTemplate.astro'
 import FeaturedEventTemplate from '@components/FeaturedEventTemplate.astro'
+import ShareMenu from '@components/ShareMenu.astro'
 import { Icon } from 'astro-icon/components'
 import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-astro-components'
 ---
@@ -122,6 +123,7 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
 
   <FeaturedEventTemplate />
   <EventCardTemplate />
+  <ShareMenu />
 </DefaultLayout>
 
 <script>
