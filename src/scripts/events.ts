@@ -11,12 +11,15 @@ import {
 } from '../lib/countdown'
 import {
   eventCountries,
+  eventYears,
   filtersFromUrl,
   filtersToUrl,
   groupBy,
   hasFilters,
   matchesFilters,
   NO_FILTERS,
+  pastYearFromUrl,
+  pastYearToUrl,
   periodRange,
   type EventFilters,
   type Period,
@@ -41,6 +44,8 @@ let loaded = false
 let loading = false
 let updatedAt = ''
 let filters: EventFilters = NO_FILTERS
+/** The year picked under Past; empty for the most recent one (see `pastYearFromUrl`). */
+let pastYear = ''
 
 function field<T extends HTMLElement = HTMLElement>(root: Element | DocumentFragment, name: string): T {
   return root.querySelector<T>(`[data-field="${name}"]`)!
@@ -378,12 +383,18 @@ function render(): void {
   const upcoming = shown.filter((event) => kindOf(event) === 'upcoming')
   // Most recently finished first
   const past = shown.filter((event) => kindOf(event) === 'past').reverse()
+  const year = renderYearChips(past)
+  const pastList = year === 'all' ? past : past.filter((event) => startYear(event) === year)
 
   const upcomingList = renderFeatured(live, upcoming, today)
 
   renderToday(today)
   renderGroups('upcoming-events', 'event-card-template', renderCard, upcomingList, startMonth, today)
-  renderGroups('past-events', 'past-row-template', renderPastRow, past, startYear, today)
+  renderGroups('past-events', 'past-row-template', renderPastRow, pastList, startYear, today)
+  // With one year picked, its chip already says which year; the heading stays for screen readers
+  document
+    .querySelectorAll('#past-events .event-group__heading')
+    .forEach((heading) => heading.classList.toggle('sr-only', year !== 'all'))
   renderFilterSummary(shown.length, today)
   setCount('upcoming', upcomingList.length)
   setCount('past', past.length)
@@ -403,7 +414,11 @@ function render(): void {
   )
   setMessage(
     'past',
-    past.length > 0 ? null : [paragraph(filtered ? 'No past events match your filters.' : 'No past events yet.')],
+    pastList.length > 0
+      ? null
+      : past.length > 0
+        ? [paragraph(`No past events in ${year} match your filters.`)]
+        : [paragraph(filtered ? 'No past events match your filters.' : 'No past events yet.')],
   )
 }
 
@@ -496,6 +511,68 @@ function renderCountryChip({ code, country, count }: { code: string; country: st
   label.append(input, check, ...(flag ? [flag] : []), codeText, nameText)
   item.append(label)
   return item
+}
+
+/**
+ * One radio chip per year with past events, newest first, then "All years". Returns the
+ * year to list: the picked one, else the most recent. A picked year stays even when the
+ * other filters leave it empty, so it can still be seen and changed.
+ */
+function renderYearChips(pastEvents: SwimEvent[]): string {
+  const fieldset = document.getElementById('year-filter')
+  const list = document.getElementById('year-chips')
+  const years = eventYears(pastEvents)
+  if (pastYear && pastYear !== 'all' && !years.some((entry) => entry.year === pastYear)) {
+    years.push({ year: pastYear, count: 0 })
+    years.sort((a, b) => b.year.localeCompare(a.year))
+  }
+  const selected = pastYear || years[0]?.year || 'all'
+  if (!fieldset || !list) return selected
+
+  const focused = list.contains(document.activeElement)
+  const chips = [...years, { year: 'all', count: pastEvents.length }].map(({ year, count }) =>
+    renderYearChip(year, count, year === selected),
+  )
+  list.replaceChildren(...chips)
+  if (focused) list.querySelector<HTMLInputElement>('input:checked')?.focus()
+  // One year needs no choice
+  fieldset.hidden = years.length < 2
+  return selected
+}
+
+function renderYearChip(year: string, count: number, checked: boolean): HTMLElement {
+  const item = document.createElement('li')
+  const label = document.createElement('label')
+  label.className = 'year-chip'
+
+  const input = document.createElement('input')
+  input.type = 'radio'
+  input.name = 'year'
+  input.value = year
+  input.checked = checked
+
+  const check = document.createElement('span')
+  check.className = 'country-chip__check'
+  check.setAttribute('aria-hidden', 'true')
+  const countText = document.createElement('span')
+  countText.className = 'year-chip__count'
+  countText.textContent = `(${count})`
+
+  label.append(input, check, year === 'all' ? 'All years' : year, countText)
+  item.append(label)
+  return item
+}
+
+function initYearFilter(): void {
+  pastYear = pastYearFromUrl(new URL(location.href))
+  document.getElementById('year-filter')?.addEventListener('change', (event) => {
+    const input = event.target as HTMLInputElement
+    // The newest year is where the tab opens, so it needs nothing in the URL
+    const newest = document.querySelector<HTMLInputElement>('#year-chips input')?.value
+    pastYear = input.value === newest ? '' : input.value
+    history.replaceState(history.state, '', pastYearToUrl(new URL(location.href), pastYear))
+    if (loaded) render()
+  })
 }
 
 function readFilterForm(form: HTMLFormElement): EventFilters {
@@ -602,6 +679,7 @@ export function initEvents(): void {
     document.querySelectorAll('add-to-calendar-button').forEach((button) => button.setAttribute('light-mode', mode))
   })
   initFilters()
+  initYearFilter()
   renderToday(localToday())
   loadEvents()
 }

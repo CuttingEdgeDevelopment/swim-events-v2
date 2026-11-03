@@ -206,8 +206,10 @@ body > footer::before {
   box-shadow: 0 0 0 1px rgb(255 255 255 / 0.6);
 }
 
-// Country filter: a checkbox per chip with only the flag and the IOC code showing
-.country-chip {
+// Country filter: a checkbox per chip with only the flag and the IOC code showing.
+// The year filter under Past uses the same chips with a radio button.
+.country-chip,
+.year-chip {
   display: inline-flex;
   position: relative;
   align-items: center;
@@ -270,6 +272,12 @@ body > footer::before {
   block-size: 0.85em;
 }
 
-.country-chip:has(input:checked) .country-chip__check {
+.country-chip:has(input:checked) .country-chip__check,
+.year-chip:has(input:checked) .country-chip__check {
   display: inline-block;
+}
+
+.year-chip__count {
+  margin-inline-start: 0.3em;
+  font-weight: 400;
 }

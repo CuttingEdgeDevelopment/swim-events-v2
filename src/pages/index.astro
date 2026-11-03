@@ -106,6 +106,10 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
           <div class="event-message" data-message="upcoming" hidden></div>
         </TabsPanel>
         <TabsPanel id="past-panel" labelledby="past-tab" class="event-tabs__panel">
+          <fieldset id="year-filter" class="year-filter" hidden>
+            <legend>Year</legend>
+            <ul id="year-chips" class="year-filter__chips"></ul>
+          </fieldset>
           <ul id="past-events" class="event-groups"></ul>
           <div class="event-message" data-message="past" hidden></div>
         </TabsPanel>
@@ -342,6 +346,26 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
     }
   }
 
+  // Year chips at the top of the Past tab, so the list shows one year at a time
+  .year-filter {
+    margin: 0 0 var(--space-m);
+    border: 0;
+    padding: 0;
+    min-inline-size: 0;
+
+    &[hidden] {
+      display: none;
+    }
+
+    legend {
+      margin-block-end: var(--space-4xs);
+      padding: 0;
+      font-weight: 700;
+      font-size: var(--font-size--1);
+    }
+  }
+
+  .year-filter__chips,
   .country-filter__chips {
     display: flex;
     flex-wrap: wrap;
