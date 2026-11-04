@@ -1,5 +1,5 @@
 import { defineThemeConfig } from '@utils/defineThemeConfig'
-import previewImage from '@assets/img/countdown-screenshot.png'
+import previewImage from '@assets/img/social-preview.png'
 
 export default defineThemeConfig({
   name: 'Swim Events',
