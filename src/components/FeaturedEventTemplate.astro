@@ -39,7 +39,9 @@ import { Icon } from 'astro-icon/components'
       <p class="featured-card__meta" data-field="place"></p>
       <p class="featured-card__meta" data-field="dates"></p>
     </div>
-    <div class="featured-card__calendar" data-field="calendar"></div>
+    <div class="event-actions featured-card__calendar" data-field="actions">
+      <div data-field="calendar"></div>
+    </div>
   </li>
 </template>
 
@@ -60,7 +62,9 @@ import { Icon } from 'astro-icon/components'
       <span class="featured-card__number" data-field="number"></span>
       <span class="featured-card__unit" data-field="unit"></span>
     </p>
-    <div class="featured-card__calendar" data-field="calendar"></div>
+    <div class="event-actions featured-card__calendar" data-field="actions">
+      <div data-field="calendar"></div>
+    </div>
   </li>
 </template>
 

@@ -29,7 +29,9 @@
       <span class="event-card__number" data-field="number"></span>
       <span class="event-card__unit" data-field="unit"></span>
     </p>
-    <div class="event-card__calendar" data-field="calendar"></div>
+    <div class="event-actions event-card__calendar" data-field="actions">
+      <div data-field="calendar"></div>
+    </div>
   </li>
 </template>
 
@@ -48,6 +50,7 @@
       </p>
     </div>
     <p class="past-row__finished" data-field="finished"></p>
+    <div class="event-actions past-row__actions" data-field="actions"></div>
   </li>
 </template>
 
@@ -216,6 +219,11 @@
   // keep "24–26 Jul 2026" together when the line wraps
   .past-row__dates {
     white-space: nowrap;
+  }
+
+  // the button's 44px target is taller than the text around it
+  .past-row__actions {
+    margin-block: calc(var(--space-2xs) * -1);
   }
 
   .past-row__finished {
