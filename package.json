@@ -1,8 +1,8 @@
 {
-  "name": "swim-events-countdown",
-  "description": "Swim Events Countdown website built with Accessible Astro Starter.",
+  "name": "swim-events-calendar",
+  "description": "Swim Events Calendar: upcoming swimming competitions, with a countdown to each one. Built on the Accessible Astro Starter.",
   "version": "0.0.1",
-  "author": "Incluud",
+  "author": "Nicolas Messer",
   "license": "MIT",
   "type": "module",
   "scripts": {
