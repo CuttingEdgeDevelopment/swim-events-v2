@@ -240,12 +240,13 @@ function countdownText(event: SwimEvent): string {
 }
 
 /**
- * A Share button after "Add to calendar". The message is four lines, followed by the link,
- * which opens the event with its "Add to calendar" button:
+ * A Share button after "Add to calendar". The message is four lines, with a blank one before the last,
+ * followed by the link, which opens the event with its "Add to calendar" button:
  *
  *   Geneva Swim Meet
  *   📍 Geneva, Switzerland
  *   Starts in 5 days (12–14 Nov 2026)
+ *
  *   📅 Add it to your calendar:
  *
  * Past events have no countdown and no calendar line.
@@ -258,7 +259,8 @@ function fillShare(container: HTMLElement, event: SwimEvent): void {
     event.name,
     place && `📍 ${place}`,
     when ? `${when} (${dates})` : dates,
-    when && '📅 Add it to your calendar:',
+    // an empty line first, so the call to action stands apart from the details
+    when && '\n📅 Add it to your calendar:',
   ]
     .filter(Boolean)
     .join('\n')
