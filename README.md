@@ -20,7 +20,7 @@ lives in [CuttingEdgeDevelopment/swim-events](https://github.com/CuttingEdgeDeve
 - **Add to calendar:** Apple, Google, Outlook, Yahoo or an `.ics` file, using
   [add-to-calendar-button](https://github.com/add2cal/add-to-calendar-button).
 - **Share:** opens the device's share sheet, or a menu with Copy link, WhatsApp and Email. The message names the event,
-  place, dates and days to go, and links to `/#event-123`.
+  place, dates and days to go on separate lines, with a calendar call to action, and links to `/#event-123`.
 - **Submit an event:** organisers sign in with a one-time code sent by email (no password), submit competitions and see
   their status on the Account page.
 - **About, Privacy and Terms** pages, light and dark mode, and accessible keyboard and screen reader support throughout.

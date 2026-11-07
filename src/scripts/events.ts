@@ -240,19 +240,28 @@ function countdownText(event: SwimEvent): string {
 }
 
 /**
- * A Share button after "Add to calendar", for a message like
- * "Geneva Swim Meet, Geneva, Switzerland, 8–10 Nov 2026. Starts in 5 days. Add it to your calendar:"
- * followed by the link, which opens the event with its "Add to calendar" button.
+ * A Share button after "Add to calendar". The message is four lines, followed by the link,
+ * which opens the event with its "Add to calendar" button:
+ *
+ *   Geneva Swim Meet
+ *   📍 Geneva, Switzerland
+ *   Starts in 5 days (12–14 Nov 2026)
+ *   📅 Add it to your calendar:
+ *
+ * Past events have no countdown and no calendar line.
  */
 function fillShare(container: HTMLElement, event: SwimEvent): void {
-  const details = [event.name, listLocation(event), rangeText(event.dateStart, event.dateEnd)]
-    .filter(Boolean)
-    .join(', ')
+  const dates = rangeText(event.dateStart, event.dateEnd)
   const when = countdownText(event)
-  // Past events are not worth adding to a calendar; the link opens the event, where the button is
-  const isOver = eventTiming(event.dateStart, event.dateEnd, localToday()).kind === 'past'
-  const text = when ? `${details}. ${when}.` : details
-  const message = isOver ? text : `${text} Add it to your calendar:`
+  const place = listLocation(event)
+  const message = [
+    event.name,
+    place && `📍 ${place}`,
+    when ? `${when} (${dates})` : dates,
+    when && '📅 Add it to your calendar:',
+  ]
+    .filter(Boolean)
+    .join('\n')
   const button = shareButton({ title: event.name, text: message, url: eventUrl(event) }, event.name)
   if (button) container.append(button)
 }
