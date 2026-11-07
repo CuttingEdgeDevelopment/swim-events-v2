@@ -245,7 +245,7 @@ function countdownText(event: SwimEvent): string {
  *
  *   Geneva Swim Meet
  *   📍 Geneva, Switzerland
- *   Starts in 5 days (12–14 Nov 2026)
+ *   ⏳ Starts in 5 days (12–14 Nov 2026)
  *
  *   📅 Add it to your calendar:
  *
@@ -258,7 +258,7 @@ function fillShare(container: HTMLElement, event: SwimEvent): void {
   const message = [
     event.name,
     place && `📍 ${place}`,
-    when ? `${when} (${dates})` : dates,
+    when ? `⏳ ${when} (${dates})` : dates,
     // an empty line first, so the call to action stands apart from the details
     when && '\n📅 Add it to your calendar:',
   ]
