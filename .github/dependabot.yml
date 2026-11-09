@@ -1,0 +1,50 @@
+# Dependency updates twice a month (the 1st and 15th). Minor and patch updates arrive as a few grouped pull requests;
+# each major update gets its own pull request, to read its upgrade guide before merging.
+# The CI workflow (type check and build) runs on every one of them. Nothing merges automatically.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      # Dependabot has no every-two-weeks interval, so a cron schedule stands in for it.
+      # Switch to `interval: monthly` if updates turn out to be few.
+      interval: cron
+      cronjob: '0 6 1,15 * *'
+      timezone: Europe/Zurich
+    # Wait a few days after a release before proposing it: broken or malicious releases
+    # are usually caught and pulled within that time.
+    cooldown:
+      default-days: 5
+      semver-major-days: 14
+    open-pull-requests-limit: 10
+    groups:
+      astro:
+        patterns:
+          - astro
+          - '@astrojs/*'
+          - 'astro-*'
+          - accessible-astro-components
+          - eslint-plugin-astro
+          - prettier-plugin-astro
+        update-types: [minor, patch]
+      tailwind:
+        patterns:
+          - tailwindcss
+          - '@tailwindcss/*'
+          - prettier-plugin-tailwindcss
+        update-types: [minor, patch]
+      dev-tools:
+        dependency-type: development
+        update-types: [minor, patch]
+      other:
+        patterns: ['*']
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      timezone: Europe/Zurich
+    groups:
+      actions:
+        patterns: ['*']
