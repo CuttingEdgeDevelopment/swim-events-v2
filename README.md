@@ -85,7 +85,7 @@ once events load again. It needs the same `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPA
 
 #### Keeping dependencies up to date
 - **Packages** (Astro, Tailwind CSS, Accessible Astro Components and the rest): Dependabot (`.github/dependabot.yml`) opens
-  pull requests every Monday. Minor and patch updates come grouped (Astro, Tailwind, dev tools, everything else); each
+  pull requests on the 1st and 15th of each month. Minor and patch updates come grouped (Astro, Tailwind, dev tools, everything else); each
   major update comes on its own, so read its upgrade guide before merging. New releases wait a few days (two weeks for
   majors) before they are proposed. Nothing merges automatically.
 - **Checks**: `.github/workflows/ci.yml` installs exactly what `package-lock.json` lists, runs `astro check` and builds

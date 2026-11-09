@@ -1,4 +1,4 @@
-# Weekly dependency updates. Minor and patch updates arrive as a few grouped pull requests;
+# Dependency updates twice a month (the 1st and 15th). Minor and patch updates arrive as a few grouped pull requests;
 # each major update gets its own pull request, to read its upgrade guide before merging.
 # The CI workflow (type check and build) runs on every one of them. Nothing merges automatically.
 version: 2
@@ -6,9 +6,10 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
-      day: monday
-      time: '06:00'
+      # Dependabot has no every-two-weeks interval, so a cron schedule stands in for it.
+      # Switch to `interval: monthly` if updates turn out to be few.
+      interval: cron
+      cronjob: '0 6 1,15 * *'
       timezone: Europe/Zurich
     # Wait a few days after a release before proposing it: broken or malicious releases
     # are usually caught and pulled within that time.
