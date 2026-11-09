@@ -1,0 +1,41 @@
+# Type check and build every pull request (including Dependabot's) and every push to main,
+# with the Node version from .nvmrc and exactly the versions in package-lock.json.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Type check
+        run: npx astro check
+
+      - name: Build
+        # The build only needs the values to exist; it does not call Supabase. Dependabot runs get
+        # no repository variables, so they fall back to placeholders.
+        env:
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          PUBLIC_SUPABASE_KEY: ${{ vars.PUBLIC_SUPABASE_KEY || 'placeholder' }}
+        run: npm run build

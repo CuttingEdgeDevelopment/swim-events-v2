@@ -83,6 +83,20 @@ it opens an "Events failed to load" issue assigned to the site owner, comments o
 once events load again. It needs the same `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_KEY` as repository variables
 (Settings → Secrets and variables → Actions → Variables). Run it by hand from the Actions tab to test.
 
+#### Keeping dependencies up to date
+- **Packages** (Astro, Tailwind CSS, Accessible Astro Components and the rest): Dependabot (`.github/dependabot.yml`) opens
+  pull requests every Monday. Minor and patch updates come grouped (Astro, Tailwind, dev tools, everything else); each
+  major update comes on its own, so read its upgrade guide before merging. New releases wait a few days (two weeks for
+  majors) before they are proposed. Nothing merges automatically.
+- **Checks**: `.github/workflows/ci.yml` installs exactly what `package-lock.json` lists, runs `astro check` and builds
+  the site on every pull request and push to `main`. Merge an update only when it is green, and look at the Netlify
+  deploy preview for anything visual.
+- **Accessible Astro Starter**: it is a template we copied, not a package, so Dependabot cannot update it.
+  `.accessible-astro-starter-version` records the release we started from, and `.github/workflows/starter-check.yml`
+  opens an issue on the 1st of each month when a newer release is out, with a link to the upstream changes to copy over.
+- **Node**: `.nvmrc` sets the version for CI; keep `NODE_VERSION` in `netlify.toml` and `engines` in `package.json` in step
+  with it.
+
 #### Affiliate Disclosure
 ***Simple Analytics:*** they give me 50% of the first year's revenue. You as a new customer will get one month of extra trial.
 

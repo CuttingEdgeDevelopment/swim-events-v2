@@ -1,0 +1,60 @@
+# Once a month, compare the Accessible Astro Starter version this site was built from
+# (.accessible-astro-starter-version) with the starter's latest release. When a newer one exists,
+# open an issue assigned to the site owner with a link to the upstream changes, so they can be
+# copied over by hand. The starter is a template, not a package, so Dependabot cannot do this.
+name: Starter check
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  UPSTREAM: incluud/accessible-astro-starter
+  OWNER: nicolasmesser
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .accessible-astro-starter-version
+          sparse-checkout-cone-mode: false
+
+      - name: Compare with the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          current=$(tr -d '[:space:]' < .accessible-astro-starter-version)
+          latest=$(git ls-remote --tags --refs --sort=-v:refname "https://github.com/$UPSTREAM" 'v*' \
+            | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          echo "Built from $current, latest is $latest"
+          if [ -z "$latest" ] || [ "$latest" = "$current" ]; then
+            exit 0
+          fi
+          title="Accessible Astro Starter $latest is out"
+          existing=$(gh issue list --state all --search "in:title \"$title\"" --json number,title \
+            --jq "map(select(.title == \"$title\")) | .[0].number // empty")
+          if [ -n "$existing" ]; then
+            echo "Issue #$existing already exists"
+            exit 0
+          fi
+          body=$(cat <<BODY
+          This site was built from the Accessible Astro Starter **$current**; **$latest** is out.
+
+          - [Release notes](https://github.com/$UPSTREAM/releases/tag/$latest)
+          - [All changes $current → $latest](https://github.com/$UPSTREAM/compare/$current...$latest)
+
+          Copy over the changes to files we still use from the starter (layout, header, footer, navigation,
+          SCSS base styles, \`astro.config.mjs\`, \`eslint.config.js\`), skipping the blog, portfolio and demo pages
+          we removed. Package updates such as Astro or Tailwind come through Dependabot instead. Then set
+          \`.accessible-astro-starter-version\` to \`$latest\`.
+          BODY
+          )
+          gh issue create --title "$title" --assignee "$OWNER" --body "$body"
