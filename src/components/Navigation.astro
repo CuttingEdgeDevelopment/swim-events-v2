@@ -104,8 +104,7 @@ const hasMenu = themeConfig.navigation.items.length > 0
       }
     }
 
-    mainMenu &&
-      mainMenu.addEventListener('keydown', (event: KeyboardEvent) => {
+    mainMenu?.addEventListener('keydown', (event: KeyboardEvent) => {
         const element = event.target as Element
         const currentMenuItem = element.closest('li')
         const menuItems = [...mainMenu.querySelectorAll('.menu-item')] as HTMLLIElement[]
@@ -206,8 +205,7 @@ const hasMenu = themeConfig.navigation.items.length > 0
         }
       })
 
-    dropdownMenus &&
-      dropdownMenus.forEach((dropdownMenu) => {
+    dropdownMenus?.forEach((dropdownMenu) => {
         dropdownMenu.addEventListener('click', toggleDropdownMenu as EventListener)
       })
 
