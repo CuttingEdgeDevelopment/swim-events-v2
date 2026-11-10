@@ -71,6 +71,7 @@ Requires Node 24.19 or newer.
 | `npm run dev`     | Starts local dev server at `localhost:4321` |
 | `npm run build`   | Builds the production site to `./dist/`     |
 | `npm run preview` | Previews the build locally                  |
+| `npm run lint`    | Checks the code with ESLint                 |
 | `npm run flags`   | Copies the country flags to `public/flags/` |
 
 ### Deployment
@@ -88,7 +89,7 @@ once events load again. It needs the same `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPA
   pull requests on the 1st and 15th of each month. Minor and patch updates come grouped (Astro, Tailwind, dev tools, everything else); each
   major update comes on its own, so read its upgrade guide before merging. New releases wait a few days (two weeks for
   majors) before they are proposed. Nothing merges automatically.
-- **Checks**: `.github/workflows/ci.yml` installs exactly what `package-lock.json` lists, runs `astro check` and builds
+- **Checks**: `.github/workflows/ci.yml` installs exactly what `package-lock.json` lists, runs the linter (`npm run lint`), `astro check` and builds
   the site on every pull request and push to `main`. Merge an update only when it is green, and look at the Netlify
   deploy preview for anything visual.
 - **Accessible Astro Starter**: it is a template we copied, not a package, so Dependabot cannot update it.

@@ -13,15 +13,17 @@
     <div class="event-card__info">
       <h4 class="event-card__name">
         <span data-field="name"></span>
-        {
-          /* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content -- href and name are set by src/scripts/events.ts */
-        }
+        {/* The link's href and text are set by src/scripts/events.ts */}
+        {/* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content */}
         <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
       </h4>
       <p class="event-card__meta">
-        <span data-field="place"></span><span class="event-card__sep" aria-hidden="true"> · </span><span
-          class="event-card__dates"
-          data-field="dates"></span>
+        <span data-field="place"></span>
+        <span class="event-card__sep" aria-hidden="true">
+          {' '}
+          ·{' '}
+        </span>
+        <span class="event-card__dates" data-field="dates"></span>
       </p>
     </div>
     <span class="badge badge--info event-card__badge" data-field="badge" hidden></span>
@@ -40,9 +42,8 @@
     <div class="past-row__info">
       <h4 class="past-row__name">
         <span data-field="name"></span>
-        {
-          /* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content -- href and name are set by src/scripts/events.ts */
-        }
+        {/* The link's href and text are set by src/scripts/events.ts */}
+        {/* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content */}
         <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
       </h4>
       <p class="event-card__meta">

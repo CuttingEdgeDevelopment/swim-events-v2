@@ -22,18 +22,17 @@ import { Icon } from 'astro-icon/components'
         Starts today
       </span>
       <p class="featured-card__progress" data-field="progress">
-        <span aria-hidden="true"
-          ><span class="featured-card__number" data-field="day"></span> / <span data-field="total"></span> days</span
-        >
+        <span aria-hidden="true">
+          <span class="featured-card__number" data-field="day"></span> / <span data-field="total"></span> days
+        </span>
         <span class="sr-only" data-field="progress-text"></span>
       </p>
     </div>
     <div>
       <h3 class="featured-card__name">
         <span data-field="name"></span>
-        {
-          /* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content -- href and name are set by src/scripts/events.ts */
-        }
+        {/* The link's href and text are set by src/scripts/events.ts */}
+        {/* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content */}
         <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
       </h3>
       <p class="featured-card__meta" data-field="place"></p>
@@ -50,9 +49,8 @@ import { Icon } from 'astro-icon/components'
     <div>
       <h3 class="featured-card__name">
         <span data-field="name"></span>
-        {
-          /* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content -- href and name are set by src/scripts/events.ts */
-        }
+        {/* The link's href and text are set by src/scripts/events.ts */}
+        {/* eslint-disable-next-line astro/jsx-a11y/anchor-is-valid, astro/jsx-a11y/anchor-has-content */}
         <a class="event-link" data-field="link" target="_blank" rel="noopener noreferrer" hidden></a>
       </h3>
       <p class="featured-card__meta" data-field="place"></p>
