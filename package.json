@@ -60,7 +60,7 @@
     "accessible-astro-components": "^5.8.1",
     "add-to-calendar-button": "3.5.1",
     "astro-seo": "^1.1.0",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "engines": {
     "node": ">=24.19.0",
