@@ -1,6 +1,7 @@
 ---
 import { Link } from 'accessible-astro-components'
 import SimpleAnalyticsBadge from './SimpleAnalyticsBadge.astro'
+import WebsiteCarbonBadge from './WebsiteCarbonBadge.astro'
 
 const currentYear = new Date().getFullYear()
 ---
@@ -8,31 +9,50 @@ const currentYear = new Date().getFullYear()
 <footer>
   <section class="py-8">
     <div class="footer__content container">
-      <div class="footer__owner">
+      <!-- top tier: who owns the site and the legal links -->
+      <div class="footer__main">
         <p>
           Copyright &copy; 2025-{currentYear}
-          <Link href="https://proswimworkouts.com/" isExternal>ProSwimWorkouts</Link>
+          <Link href="https://proswimworkouts.com/" isExternal>
+            ProSwimWorkouts
+          </Link>
         </p>
-        <p>
+        <nav aria-label="About and legal">
+          <ul class="footer__links">
+            <li>
+              <a href="/about">About</a>
+            </li>
+            <li>
+              <a href="/privacy">Privacy policy</a>
+            </li>
+            <li>
+              <a href="/terms">Terms of service</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <!-- small print: the credits, separated by dots where they share a line -->
+      <ul class="footer__credits" aria-label="Credits">
+        <li>
           Design and development by
-          <Link href="https://cutting-edge.dev/" isExternal>Cutting Edge Development Studio</Link>
-        </p>
-      </div>
-      <nav aria-label="About and legal">
-        <ul class="footer__links">
-          <li><a href="/about">About</a></li>
-          <li><a href="/privacy">Privacy policy</a></li>
-          <li><a href="/terms">Terms of service</a></li>
-        </ul>
-      </nav>
-      <div class="footer__credit">
-        <SimpleAnalyticsBadge />
-      </div>
+          <Link href="https://cutting-edge.dev/" isExternal>
+            Cutting Edge Development Studio
+          </Link>
+        </li>
+        <li>
+          <SimpleAnalyticsBadge />
+        </li>
+        <li>
+          <WebsiteCarbonBadge />
+        </li>
+      </ul>
     </div>
   </section>
 </footer>
 
 <style lang="scss">
+  @use 'scss/base/breakpoint' as *;
+
   // The lane-rope stripe above the footer (src/assets/scss/base/_swim.scss) replaces the border
   footer {
     --lane-gap: var(--surface-color);
@@ -42,27 +62,16 @@ const currentYear = new Date().getFullYear()
     font-size: 1rem; // a step under the 18px body text, as in the mockup
   }
 
-  // copyright on the left, legal links on the right, analytics credit on its own row below
-  .footer__content {
+  .footer__content p {
+    margin: 0;
+  }
+
+  .footer__main {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     gap: var(--space-xs) var(--space-l);
-
-    p {
-      margin: 0;
-    }
-  }
-
-  .footer__owner {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3xs);
-  }
-
-  .footer__credit {
-    flex-basis: 100%;
   }
 
   .footer__links {
@@ -72,5 +81,70 @@ const currentYear = new Date().getFullYear()
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+
+  // the credits, centred under the divider: one per line on phones and tablets; from 1100px
+  // the design and analytics credits share a line with a dot between them, and the carbon
+  // credit gets the line below to itself
+  .footer__credits {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3xs);
+    margin: var(--space-s) 0 0;
+    padding: var(--space-s) 0 0;
+    font-size: 0.875rem;
+    list-style: none;
+    text-align: center;
+
+    // a small wave instead of a straight divider, drawn as a mask so it takes the theme's
+    // border colour in light and dark mode
+    &::before {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='6'%3E%3Cpath d='M0 3 Q4 0.5 8 3 T16 3' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E")
+        repeat-x left center / 16px 6px;
+      background-color: var(--border-color-subtle);
+      height: 6px;
+      content: '';
+    }
+
+    // forced colours drop background colours, so fall back to a plain line there
+    @media (forced-colors: active) {
+      &::before {
+        mask: none;
+        border-top: 1px solid CanvasText;
+        height: 0;
+      }
+    }
+
+    @include breakpoint(1100px) {
+      column-gap: 0;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+
+      li:nth-child(2)::before {
+        margin-inline: 0.6em;
+        content: '·' / ''; // decorative, not read out
+      }
+
+      li:nth-child(3) {
+        flex-basis: 100%;
+      }
+    }
+
+    // the carbon credit hides itself until it has a figure; hide its row with it
+    li:has(> [data-website-carbon][hidden]) {
+      display: none;
+    }
+
+    :global(a.sa-credit),
+    :global(a.wc-credit) {
+      display: inline !important;
+    }
   }
 </style>

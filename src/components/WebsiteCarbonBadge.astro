@@ -1,0 +1,134 @@
+---
+// Website Carbon credit (https://gitlab.com/wholegrain/website-carbon-badges): the CO2 per page
+// view, from the Website Carbon API. Written for this site instead of embedding the official
+// b.min.js, which uses fixed ids, runs once (so it would stop after the first View Transition)
+// and loads from unpkg. It keeps the official badge's behaviour: one API call per page per day
+// at most, with the result cached on the visitor's device.
+//
+// To keep it light and private:
+// - it measures the canonical page (https://swim-events.com + path), never query strings or #event-123
+// - it calls the API only in production, and only when the footer comes near the screen
+// - it stays hidden without JavaScript or when the API fails, so it never shows a blank claim
+// Styled like the Simple Analytics text credit next to it, in the footer's text colour, so it
+// follows the light and dark theme on its own.
+---
+
+<a class="wc-credit" href="https://www.websitecarbon.com/" target="_blank" rel="noopener" data-website-carbon hidden>
+  <span class="wc-credit__caption" data-field="wc-result">
+    Measuring this page's CO₂…
+  </span>
+  <span class="wc-credit__byline">
+    by Website Carbon<span class="sr-only"> (opens in new tab)</span>
+  </span>
+</a>
+
+<script>
+  const API = 'https://api.websitecarbon.com/b?url='
+  const SITE = 'https://swim-events.com'
+  const DAY = 24 * 60 * 60 * 1000
+
+  type Result = { c: number; p: number; t: number }
+
+  const grams = new Intl.NumberFormat('en', { maximumFractionDigits: 2 })
+
+  const read = (key: string): Result | null => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) ?? 'null')
+      return saved && Number.isFinite(saved.c) && Number.isFinite(saved.p) && Number.isFinite(saved.t) ? saved : null
+    } catch {
+      return null
+    }
+  }
+
+  const save = (key: string, result: Result) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(result))
+    } catch {
+      // private mode or full storage: the badge still shows, it just asks again next time
+    }
+  }
+
+  const show = (badge: HTMLElement, { c, p }: Result) => {
+    const text = badge.querySelector('[data-field="wc-result"]')
+    if (text)
+      text.textContent = `${grams.format(c)} g of CO₂ per page view, cleaner than ${Math.round(p)}% of pages tested`
+    badge.hidden = false
+  }
+
+  const measure = async (badge: HTMLElement, url: string, key: string, cached: Result | null) => {
+    try {
+      const response = await fetch(API + encodeURIComponent(url), { referrerPolicy: 'no-referrer' })
+      if (!response.ok) throw new Error(`Website Carbon answered ${response.status}`)
+      const { c, p } = await response.json()
+      if (!Number.isFinite(c) || !Number.isFinite(p)) throw new Error('Website Carbon sent no result')
+      const result = { c, p, t: Date.now() }
+      save(key, result)
+      if (badge.isConnected) show(badge, result)
+    } catch {
+      // keep yesterday's figure if there is one, otherwise stay hidden
+      if (!cached) badge.hidden = true
+    }
+  }
+
+  let observer: IntersectionObserver | undefined
+
+  const initWebsiteCarbon = () => {
+    observer?.disconnect()
+    const badge = document.querySelector<HTMLElement>('[data-website-carbon]')
+    if (!badge || !import.meta.env.PROD || !('fetch' in window)) return
+
+    const url = SITE + location.pathname
+    const key = `wcb_${url}`
+    const cached = read(key)
+
+    if (cached) show(badge, cached)
+    if (cached && Date.now() - cached.t < DAY) return
+
+    // wait until the visitor scrolls near the footer, so most page views make no call at all
+    observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return
+        observer?.disconnect()
+        if (!cached) badge.hidden = false
+        measure(badge, url, key, cached)
+      },
+      { rootMargin: '200px 0px' },
+    )
+    observer.observe(badge.closest('footer') ?? badge)
+  }
+
+  document.addEventListener('astro:page-load', initWebsiteCarbon)
+</script>
+
+<style lang="scss" is:global>
+  // the same text-link look as the Simple Analytics credit (SimpleAnalyticsBadge.astro)
+  footer a.wc-credit {
+    display: block;
+    color: inherit;
+    line-height: 1.6;
+    text-decoration: none;
+
+    &[hidden] {
+      display: none;
+    }
+
+    &:hover .wc-credit__byline {
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--outline-color);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 2px var(--focus-halo);
+    }
+  }
+
+  // compressHTML drops the space between the two spans, so the caption brings its own
+  footer .wc-credit__caption::after {
+    content: ' ';
+  }
+
+  footer .wc-credit__byline {
+    white-space: nowrap;
+  }
+</style>
