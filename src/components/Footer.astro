@@ -8,39 +8,44 @@ const currentYear = new Date().getFullYear()
 
 <footer>
   <section class="py-8">
-    <!-- three rows on wide screens: copyright | legal links, design | analytics credit, carbon credit -->
     <div class="footer__content container">
-      <p class="footer__copyright">
-        Copyright &copy; 2025-{currentYear}
-        <Link href="https://proswimworkouts.com/" isExternal>
-          ProSwimWorkouts
-        </Link>
-      </p>
-      <nav class="footer__nav" aria-label="About and legal">
-        <ul class="footer__links">
-          <li>
-            <a href="/about">About</a>
-          </li>
-          <li>
-            <a href="/privacy">Privacy policy</a>
-          </li>
-          <li>
-            <a href="/terms">Terms of service</a>
-          </li>
-        </ul>
-      </nav>
-      <p class="footer__design">
-        Design and development by
-        <Link href="https://cutting-edge.dev/" isExternal>
-          Cutting Edge Development Studio
-        </Link>
-      </p>
-      <div class="footer__analytics">
-        <SimpleAnalyticsBadge />
+      <!-- top tier: who owns the site and the legal links -->
+      <div class="footer__main">
+        <p>
+          Copyright &copy; 2025-{currentYear}
+          <Link href="https://proswimworkouts.com/" isExternal>
+            ProSwimWorkouts
+          </Link>
+        </p>
+        <nav aria-label="About and legal">
+          <ul class="footer__links">
+            <li>
+              <a href="/about">About</a>
+            </li>
+            <li>
+              <a href="/privacy">Privacy policy</a>
+            </li>
+            <li>
+              <a href="/terms">Terms of service</a>
+            </li>
+          </ul>
+        </nav>
       </div>
-      <div class="footer__carbon">
-        <WebsiteCarbonBadge />
-      </div>
+      <!-- small print: the credits, separated by dots where they share a line -->
+      <ul class="footer__credits" aria-label="Credits">
+        <li>
+          Design and development by
+          <Link href="https://cutting-edge.dev/" isExternal>
+            Cutting Edge Development Studio
+          </Link>
+        </li>
+        <li>
+          <SimpleAnalyticsBadge />
+        </li>
+        <li>
+          <WebsiteCarbonBadge />
+        </li>
+      </ul>
     </div>
   </section>
 </footer>
@@ -57,30 +62,16 @@ const currentYear = new Date().getFullYear()
     font-size: 1rem; // a step under the 18px body text, as in the mockup
   }
 
-  // one column on phones, in reading order; from 768px two columns, each right-hand item
-  // on the same row as its left-hand partner, and the carbon credit alone on the last row
-  .footer__content {
-    display: grid;
-    grid-template-columns: 1fr;
+  .footer__content p {
+    margin: 0;
+  }
+
+  .footer__main {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
     align-items: center;
     gap: var(--space-xs) var(--space-l);
-
-    p {
-      margin: 0;
-    }
-
-    @include breakpoint(m) {
-      grid-template-columns: 1fr auto;
-
-      .footer__nav,
-      .footer__analytics {
-        justify-self: end;
-      }
-
-      .footer__carbon {
-        grid-column: 1 / -1;
-      }
-    }
   }
 
   .footer__links {
@@ -90,5 +81,47 @@ const currentYear = new Date().getFullYear()
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+
+  // the credits, centred under the divider: one per line on phones and tablets; from 1100px
+  // the design and analytics credits share a line with a dot between them, and the carbon
+  // credit gets the line below to itself
+  .footer__credits {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3xs);
+    margin: var(--space-s) 0 0;
+    border-top: 1px solid var(--border-color-subtle);
+    padding: var(--space-s) 0 0;
+    font-size: 0.875rem;
+    list-style: none;
+    text-align: center;
+
+    @include breakpoint(1100px) {
+      column-gap: 0;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+
+      li:nth-child(2)::before {
+        margin-inline: 0.6em;
+        content: '·' / ''; // decorative, not read out
+      }
+
+      li:nth-child(3) {
+        flex-basis: 100%;
+      }
+    }
+
+    // the carbon credit hides itself until it has a figure; hide its row with it
+    li:has(> [data-website-carbon][hidden]) {
+      display: none;
+    }
+
+    :global(a.sa-credit),
+    :global(a.wc-credit) {
+      display: inline !important;
+    }
   }
 </style>
