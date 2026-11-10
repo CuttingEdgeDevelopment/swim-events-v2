@@ -34,7 +34,7 @@
     "@types/sanitize-html": "^2.16.1",
     "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.59.1",
-    "astro": "^7.2.2",
+    "astro": "^7.4.5",
     "astro-compress": "^2.4.3",
     "astro-eslint-parser": "^1.4.0",
     "astro-icon": "^1.1.5",
@@ -57,7 +57,7 @@
     "@astrojs/sitemap": "^3.7.3",
     "@supabase/supabase-js": "^2.118.0",
     "@tailwindcss/vite": "^4.2.4",
-    "accessible-astro-components": "^5.8.0",
+    "accessible-astro-components": "^5.8.1",
     "add-to-calendar-button": "3.3.0",
     "astro-seo": "^1.1.0",
     "typescript": "^6.0.3"
