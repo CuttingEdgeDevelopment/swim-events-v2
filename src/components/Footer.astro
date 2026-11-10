@@ -1,6 +1,7 @@
 ---
 import { Link } from 'accessible-astro-components'
 import SimpleAnalyticsBadge from './SimpleAnalyticsBadge.astro'
+import WebsiteCarbonBadge from './WebsiteCarbonBadge.astro'
 
 const currentYear = new Date().getFullYear()
 ---
@@ -11,22 +12,33 @@ const currentYear = new Date().getFullYear()
       <div class="footer__owner">
         <p>
           Copyright &copy; 2025-{currentYear}
-          <Link href="https://proswimworkouts.com/" isExternal>ProSwimWorkouts</Link>
+          <Link href="https://proswimworkouts.com/" isExternal>
+            ProSwimWorkouts
+          </Link>
         </p>
         <p>
           Design and development by
-          <Link href="https://cutting-edge.dev/" isExternal>Cutting Edge Development Studio</Link>
+          <Link href="https://cutting-edge.dev/" isExternal>
+            Cutting Edge Development Studio
+          </Link>
         </p>
       </div>
       <nav aria-label="About and legal">
         <ul class="footer__links">
-          <li><a href="/about">About</a></li>
-          <li><a href="/privacy">Privacy policy</a></li>
-          <li><a href="/terms">Terms of service</a></li>
+          <li>
+            <a href="/about">About</a>
+          </li>
+          <li>
+            <a href="/privacy">Privacy policy</a>
+          </li>
+          <li>
+            <a href="/terms">Terms of service</a>
+          </li>
         </ul>
       </nav>
       <div class="footer__credit">
         <SimpleAnalyticsBadge />
+        <WebsiteCarbonBadge />
       </div>
     </div>
   </section>
@@ -42,7 +54,7 @@ const currentYear = new Date().getFullYear()
     font-size: 1rem; // a step under the 18px body text, as in the mockup
   }
 
-  // copyright on the left, legal links on the right, analytics credit on its own row below
+  // copyright on the left, legal links on the right, analytics and carbon credits on their own row below
   .footer__content {
     display: flex;
     flex-wrap: wrap;
@@ -61,8 +73,12 @@ const currentYear = new Date().getFullYear()
     gap: var(--space-3xs);
   }
 
+  // side by side when they fit, stacked on narrow screens
   .footer__credit {
+    display: flex;
     flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-l);
   }
 
   .footer__links {
