@@ -8,22 +8,15 @@ const currentYear = new Date().getFullYear()
 
 <footer>
   <section class="py-8">
+    <!-- three rows on wide screens: copyright | legal links, design | analytics credit, carbon credit -->
     <div class="footer__content container">
-      <div class="footer__owner">
-        <p>
-          Copyright &copy; 2025-{currentYear}
-          <Link href="https://proswimworkouts.com/" isExternal>
-            ProSwimWorkouts
-          </Link>
-        </p>
-        <p>
-          Design and development by
-          <Link href="https://cutting-edge.dev/" isExternal>
-            Cutting Edge Development Studio
-          </Link>
-        </p>
-      </div>
-      <nav aria-label="About and legal">
+      <p class="footer__copyright">
+        Copyright &copy; 2025-{currentYear}
+        <Link href="https://proswimworkouts.com/" isExternal>
+          ProSwimWorkouts
+        </Link>
+      </p>
+      <nav class="footer__nav" aria-label="About and legal">
         <ul class="footer__links">
           <li>
             <a href="/about">About</a>
@@ -36,8 +29,16 @@ const currentYear = new Date().getFullYear()
           </li>
         </ul>
       </nav>
-      <div class="footer__credit">
+      <p class="footer__design">
+        Design and development by
+        <Link href="https://cutting-edge.dev/" isExternal>
+          Cutting Edge Development Studio
+        </Link>
+      </p>
+      <div class="footer__analytics">
         <SimpleAnalyticsBadge />
+      </div>
+      <div class="footer__carbon">
         <WebsiteCarbonBadge />
       </div>
     </div>
@@ -45,6 +46,8 @@ const currentYear = new Date().getFullYear()
 </footer>
 
 <style lang="scss">
+  @use 'scss/base/breakpoint' as *;
+
   // The lane-rope stripe above the footer (src/assets/scss/base/_swim.scss) replaces the border
   footer {
     --lane-gap: var(--surface-color);
@@ -54,31 +57,30 @@ const currentYear = new Date().getFullYear()
     font-size: 1rem; // a step under the 18px body text, as in the mockup
   }
 
-  // copyright on the left, legal links on the right, analytics and carbon credits on their own row below
+  // one column on phones, in reading order; from 768px two columns, each right-hand item
+  // on the same row as its left-hand partner, and the carbon credit alone on the last row
   .footer__content {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr;
     align-items: center;
     gap: var(--space-xs) var(--space-l);
 
     p {
       margin: 0;
     }
-  }
 
-  .footer__owner {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3xs);
-  }
+    @include breakpoint(m) {
+      grid-template-columns: 1fr auto;
 
-  // side by side when they fit, stacked on narrow screens
-  .footer__credit {
-    display: flex;
-    flex-basis: 100%;
-    flex-wrap: wrap;
-    gap: var(--space-xs) var(--space-l);
+      .footer__nav,
+      .footer__analytics {
+        justify-self: end;
+      }
+
+      .footer__carbon {
+        grid-column: 1 / -1;
+      }
+    }
   }
 
   .footer__links {
