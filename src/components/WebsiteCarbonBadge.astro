@@ -1,21 +1,29 @@
 ---
 // Website Carbon credit (https://gitlab.com/wholegrain/website-carbon-badges): the CO2 per page
-// view, from the Website Carbon API. Written for this site instead of embedding the official
+// view of the site, measured on the home page, from the Website Carbon API. Written for this site instead of embedding the official
 // b.min.js, which uses fixed ids, runs once (so it would stop after the first View Transition)
-// and loads from unpkg. It keeps the official badge's behaviour: one API call per page per day
-// at most, with the result cached on the visitor's device.
+// and loads from unpkg. Like the official badge it caches the result on the visitor's device,
+// so a visitor asks at most once a day, and once an hour after a failed answer.
 //
 // To keep it light and private:
-// - it measures the canonical page (https://swim-events.com + path), never query strings or #event-123
+// - it measures only https://swim-events.com/, one figure for the whole site, so no page path is sent
 // - it calls the API only in production, and only when the footer comes near the screen
-// - it stays hidden without JavaScript or when the API fails, so it never shows a blank claim
+// - it stays hidden until it has a figure (no "measuring" placeholder that flashes up and
+//   disappears when the API fails), and without JavaScript
 // Styled like the Simple Analytics text credit next to it, in the footer's text colour, so it
 // follows the light and dark theme on its own.
 ---
 
-<a class="wc-credit" href="https://www.websitecarbon.com/" target="_blank" rel="noopener" data-website-carbon hidden>
+<a
+  class="wc-credit"
+  href="https://www.websitecarbon.com/website/swim-events-com/"
+  target="_blank"
+  rel="noopener"
+  data-website-carbon
+  hidden
+>
   <span class="wc-credit__caption" data-field="wc-result">
-    Measuring this page's CO₂…
+    CO₂ per page view
   </span>
   <span class="wc-credit__byline">
     by Website Carbon<span class="sr-only"> (opens in new tab)</span>
@@ -24,8 +32,11 @@
 
 <script>
   const API = 'https://api.websitecarbon.com/b?url='
-  const SITE = 'https://swim-events.com'
-  const DAY = 24 * 60 * 60 * 1000
+  const HOME = 'https://swim-events.com/'
+  const KEY = `wcb_${HOME}`
+  const FAILED_KEY = 'wcb_failed'
+  const HOUR = 60 * 60 * 1000
+  const DAY = 24 * HOUR
 
   type Result = { c: number; p: number; t: number }
 
@@ -55,18 +66,35 @@
     badge.hidden = false
   }
 
-  const measure = async (badge: HTMLElement, url: string, key: string, cached: Result | null) => {
+  // after a failed answer, wait an hour before asking again instead of asking on every page
+  const failedRecently = () => {
     try {
-      const response = await fetch(API + encodeURIComponent(url), { referrerPolicy: 'no-referrer' })
+      return Date.now() - Number(localStorage.getItem(FAILED_KEY) ?? 0) < HOUR
+    } catch {
+      return false
+    }
+  }
+
+  const noteFailure = () => {
+    try {
+      localStorage.setItem(FAILED_KEY, String(Date.now()))
+    } catch {
+      // nothing to remember it in: the next page simply asks again
+    }
+  }
+
+  const measure = async (badge: HTMLElement) => {
+    try {
+      const response = await fetch(API + encodeURIComponent(HOME), { referrerPolicy: 'no-referrer' })
       if (!response.ok) throw new Error(`Website Carbon answered ${response.status}`)
       const { c, p } = await response.json()
       if (!Number.isFinite(c) || !Number.isFinite(p)) throw new Error('Website Carbon sent no result')
       const result = { c, p, t: Date.now() }
-      save(key, result)
+      save(KEY, result)
       if (badge.isConnected) show(badge, result)
     } catch {
       // keep yesterday's figure if there is one, otherwise stay hidden
-      if (!cached) badge.hidden = true
+      noteFailure()
     }
   }
 
@@ -77,20 +105,17 @@
     const badge = document.querySelector<HTMLElement>('[data-website-carbon]')
     if (!badge || !import.meta.env.PROD || !('fetch' in window)) return
 
-    const url = SITE + location.pathname
-    const key = `wcb_${url}`
-    const cached = read(key)
+    const cached = read(KEY)
 
     if (cached) show(badge, cached)
-    if (cached && Date.now() - cached.t < DAY) return
+    if ((cached && Date.now() - cached.t < DAY) || failedRecently()) return
 
     // wait until the visitor scrolls near the footer, so most page views make no call at all
     observer = new IntersectionObserver(
       (entries) => {
         if (!entries.some((entry) => entry.isIntersecting)) return
         observer?.disconnect()
-        if (!cached) badge.hidden = false
-        measure(badge, url, key, cached)
+        measure(badge)
       },
       { rootMargin: '200px 0px' },
     )
