@@ -1,7 +1,6 @@
 ---
 import { Link } from 'accessible-astro-components'
 import SimpleAnalyticsBadge from './SimpleAnalyticsBadge.astro'
-import WebsiteCarbonBadge from './WebsiteCarbonBadge.astro'
 
 const currentYear = new Date().getFullYear()
 ---
@@ -42,9 +41,6 @@ const currentYear = new Date().getFullYear()
         <li>
           <SimpleAnalyticsBadge />
         </li>
-        <li>
-          <WebsiteCarbonBadge />
-        </li>
       </ul>
     </div>
   </section>
@@ -84,8 +80,7 @@ const currentYear = new Date().getFullYear()
   }
 
   // the credits, centred under the divider: one per line on phones and tablets; from 1100px
-  // the design and analytics credits share a line with a dot between them, and the carbon
-  // credit gets the line below to itself
+  // they share a line with a dot between them
   .footer__credits {
     display: flex;
     position: relative;
@@ -131,19 +126,9 @@ const currentYear = new Date().getFullYear()
         margin-inline: 0.6em;
         content: '·' / ''; // decorative, not read out
       }
-
-      li:nth-child(3) {
-        flex-basis: 100%;
-      }
     }
 
-    // the carbon credit hides itself until it has a figure; hide its row with it
-    li:has(> [data-website-carbon][hidden]) {
-      display: none;
-    }
-
-    :global(a.sa-credit),
-    :global(a.wc-credit) {
+    :global(a.sa-credit) {
       display: inline !important;
     }
   }
