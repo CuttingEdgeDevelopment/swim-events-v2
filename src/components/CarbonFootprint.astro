@@ -1,0 +1,13 @@
+---
+// MOCKUP: the site's carbon footprint per page view, estimated with CO2.js (Green Web Foundation,
+// Sustainable Web Design Model v4) from the home page's transfer size. Plain text, no request
+// from the visitor's browser. The figure comes from src/data/carbon.json.
+import carbon from '../data/carbon.json'
+---
+
+<span class="carbon-footprint">
+  About {carbon.grams} g of CO₂ per page view, rated {carbon.rating}, estimated with
+  <a href="https://www.thegreenwebfoundation.org/co2-js/" target="_blank" rel="noopener"
+    >CO2.js<span class="sr-only"> (opens in new tab)</span></a
+  >
+</span>
