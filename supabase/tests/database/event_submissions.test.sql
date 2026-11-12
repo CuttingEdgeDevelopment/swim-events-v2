@@ -1,6 +1,6 @@
 -- Who can see and change what, and the rules on submissions. Run with `supabase test db`.
 begin;
-select plan(49);
+select plan(51);
 
 -- Two organisers and a listed event
 insert into auth.users (id, email) values
@@ -20,6 +20,7 @@ select is((select level from public.profiles where id = '00000000-0000-0000-0000
 -- Visitors who aren't signed in
 set local role anon;
 select is((select count(*) from public.events where id = 900)::int, 1, 'anon can read events');
+select throws_ok($$ select * from public.countries $$, '42501', null, 'anon cannot read countries');
 select throws_ok($$ select * from public.event_submissions $$, '42501', null, 'anon cannot read submissions');
 select throws_ok($$ select * from public.profiles $$, '42501', null, 'anon cannot read profiles');
 select throws_ok($$ select * from public.event_owners $$, '42501', null, 'anon cannot read owners');
@@ -34,6 +35,7 @@ set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-00000000000a", "role": "authenticated"}';
 
 select is((select count(*) from public.events where id = 900)::int, 1, 'signed-in users can read events');
+select throws_ok($$ select * from public.countries $$, '42501', null, 'signed-in users cannot read countries');
 select is((select count(*) from public.profiles)::int, 1, 'users only see their own profile');
 select throws_ok($$ select * from public.submission_limits $$, '42501', null, 'users cannot read the limits');
 select throws_ok($$ update public.profiles set level = 'trusted' $$, '42501', null, 'users cannot change their level');
