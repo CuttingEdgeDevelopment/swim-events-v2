@@ -1,0 +1,17 @@
+# Search engines and AI assistants that look things up for people are welcome.
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /submit
+
+# Crawlers that collect content to train AI models are not (see the terms of service).
+User-agent: GPTBot
+User-agent: CCBot
+User-agent: ClaudeBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Bytespider
+User-agent: meta-externalagent
+Disallow: /
+
+Sitemap: https://swim-events.com/sitemap-index.xml
