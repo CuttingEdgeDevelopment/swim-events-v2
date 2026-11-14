@@ -1,6 +1,6 @@
 -- Who can see and change what, and the rules on submissions. Run with `supabase test db`.
 begin;
-select plan(51);
+select plan(66);
 
 -- Two organisers and a listed event
 insert into auth.users (id, email) values
@@ -19,7 +19,9 @@ select is((select level from public.profiles where id = '00000000-0000-0000-0000
 
 -- Visitors who aren't signed in
 set local role anon;
-select is((select count(*) from public.events where id = 900)::int, 1, 'anon can read events');
+select throws_ok($$ select * from public.events $$, '42501', null, 'anon cannot read events directly');
+select throws_ok($$ select public.events_rate_check('someone') $$, '42501', null, 'anon cannot call the rate check');
+select throws_ok($$ select * from public.events_rate_limits $$, '42501', null, 'anon cannot read the rate counters');
 select throws_ok($$ select * from public.countries $$, '42501', null, 'anon cannot read countries');
 select throws_ok($$ select * from public.event_submissions $$, '42501', null, 'anon cannot read submissions');
 select throws_ok($$ select * from public.profiles $$, '42501', null, 'anon cannot read profiles');
@@ -34,7 +36,9 @@ reset role;
 set local role authenticated;
 set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-00000000000a", "role": "authenticated"}';
 
-select is((select count(*) from public.events where id = 900)::int, 1, 'signed-in users can read events');
+select is((select count(*) from public.events)::int, 0, 'signed-in users only see events they own');
+select throws_ok($$ select public.events_rate_check('someone') $$, '42501', null, 'users cannot call the rate check');
+select throws_ok($$ select * from public.events_rate_limits $$, '42501', null, 'users cannot read the rate counters');
 select throws_ok($$ select * from public.countries $$, '42501', null, 'signed-in users cannot read countries');
 select is((select count(*) from public.profiles)::int, 1, 'users only see their own profile');
 select throws_ok($$ select * from public.submission_limits $$, '42501', null, 'users cannot read the limits');
@@ -132,6 +136,14 @@ update public.event_submissions set status = 'approved' where kind = 'claim';
 select is((select count(*) from public.event_owners where event_id = 900)::int, 1, 'approving a claim links the event');
 select throws_ok($$ update public.event_submissions set status = 'rejected' where kind = 'claim' $$, 'P0001', 'already_decided', 'decided submissions stay decided');
 
+-- Owners see their events on the account page; others still see none
+set local role authenticated;
+set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-00000000000a", "role": "authenticated"}';
+select is((select count(*) from public.events)::int, 2, 'owners can read the events they own');
+set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-00000000000b", "role": "authenticated"}';
+select is((select count(*) from public.events)::int, 0, 'other users still see no events');
+reset role;
+
 -- Spam blocks the account
 insert into public.event_submissions (user_id, name, city, country, "dateStart", "dateEnd", organiser_role, organiser_confirmed, idempotency_key)
 values ('00000000-0000-0000-0000-00000000000b', 'Buy Pills', 'Basel', 'SUI', current_date + 20, current_date + 20, 'Seller', true, gen_random_uuid());
@@ -158,6 +170,21 @@ reset role;
 select is((select count(*) from public.profiles where id = '00000000-0000-0000-0000-00000000000a')::int, 0, 'the profile goes with the account');
 select is((select count(*) from public.event_submissions where user_id is null)::int, 5, 'submissions stay without the link to the account');
 select is((select count(*) from public.events where name = 'Basel Winter Meet')::int, 1, 'published events stay');
+
+-- Rate limit for the events function
+update public.settings set events_rate_limit = 2, events_rate_window_minutes = 5;
+select is(public.events_rate_check('visitor-1'), true, 'first request is within the limit');
+select is(public.events_rate_check('visitor-1'), true, 'second request is within the limit');
+select is(public.events_rate_check('visitor-1'), false, 'third request is over the limit');
+select is(public.events_rate_check('visitor-2'), true, 'other visitors have their own count');
+update public.events_rate_limits set window_start = now() - interval '6 minutes' where visitor = 'visitor-1';
+select is(public.events_rate_check('visitor-1'), true, 'a new window starts the count again');
+update public.events_rate_limits set window_start = now() - interval '20 minutes' where visitor = 'visitor-2';
+select is(public.events_rate_check('visitor-3'), true, 'a third visitor is counted');
+select is((select count(*) from public.events_rate_limits where visitor = 'visitor-2')::int, 0, 'old counters are deleted');
+update public.settings set events_rate_limit = 0;
+select is(public.events_rate_check('visitor-1'), true, 'a limit of 0 switches it off');
+select is(public.events_rate_check('visitor-1'), true, 'still off');
 
 select * from finish();
 rollback;

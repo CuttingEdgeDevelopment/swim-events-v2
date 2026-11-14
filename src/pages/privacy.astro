@@ -5,7 +5,7 @@ import LegalLayout from '@layouts/LegalLayout.astro'
 <LegalLayout
   title="Privacy policy"
   description="How Swim Events Calendar handles your personal data, which services it uses and what your rights are."
-  updated="2026-11-11"
+  updated="2026-11-14"
 >
   <p>
     This page explains which personal data swim-events.com processes, why, who helps us with it and what your rights
@@ -44,7 +44,9 @@ import LegalLayout from '@layouts/LegalLayout.astro'
     <li>
       <strong>The event list:</strong> your browser loads the events from our database at Supabase, hosted in the EU
       (Frankfurt, Germany). This request also passes your IP address and browser details, which Supabase keeps in its
-      logs for a short time.
+      logs for a short time. To prevent abuse, we limit how often the list can be loaded. For this we store a
+      scrambled code (hash) made from your IP address, not the address itself. It is deleted with the next request to the
+      list once 15 minutes have passed.
     </li>
     <li>
       <strong>Visitor statistics:</strong> we count visits with Simple Analytics, a service based in the Netherlands
@@ -140,6 +142,7 @@ import LegalLayout from '@layouts/LegalLayout.astro'
   <h2>How long we keep data</h2>
   <ul>
     <li>Server and database logs: a short time, as set by Netlify and Supabase, usually a few days.</li>
+    <li>The hashed IP address for the event list's request limit: 15 minutes, then it is deleted with the next request to the list.</li>
     <li>Your account and profile: until you delete your account.</li>
     <li>Submissions marked as spam: 7 days.</li>
     <li>Submissions we didn't accept, or that you withdrew: 90 days.</li>

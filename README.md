@@ -54,6 +54,13 @@ emails the site owner about new submissions and the organiser about the decision
 Function secrets: `RESEND_API_KEY`, `NOTIFY_EMAIL` (where review emails go) and `WEBHOOK_SECRET` (sent by the webhook in
 the `x-webhook-secret` header). The database rules are tested in `supabase/tests/database/`.
 
+### Loading events
+The site loads events from the `events` Edge Function, not from the table, which visitors can't read. The function only
+answers swim-events.com, Netlify previews and localhost (`supabase/functions/events/origins.ts`), returns only the
+fields the page shows, and limits requests per visitor by a hashed IP. The limit is set in the `settings` table:
+`events_rate_limit` (requests per window, `0` switches it off) and `events_rate_window_minutes`. Deploy with
+`supabase functions deploy events`; it needs no extra secrets.
+
 ### Getting started
 Requires Node 24.19 or newer.
 

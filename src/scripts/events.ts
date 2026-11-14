@@ -812,13 +812,13 @@ function renderLoadFailed(): void {
   announce('No events to show yet. Use Update events to try loading them again.')
 }
 
-async function loadEvents(): Promise<void> {
+async function loadEvents(fresh = false): Promise<void> {
   if (loading) return
   setLoading(true)
   announce(LOADING_TEXT)
 
   try {
-    events = await fetchEvents()
+    events = await fetchEvents({ fresh })
     const firstLoad = !loaded
     loaded = true
     updatedAt = time.format(new Date())
@@ -840,7 +840,7 @@ export function initEvents(): void {
   if (!refreshButton || refreshButton.dataset.bound) return
 
   refreshButton.dataset.bound = 'true'
-  refreshButton.addEventListener('click', () => loadEvents())
+  refreshButton.addEventListener('click', () => loadEvents(true))
   document.addEventListener('darkmode:change', () => {
     const mode = calendarLightMode()
     document.querySelectorAll('add-to-calendar-button').forEach((button) => button.setAttribute('light-mode', mode))
