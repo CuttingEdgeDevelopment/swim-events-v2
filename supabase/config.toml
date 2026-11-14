@@ -419,3 +419,7 @@ enabled = true
 # instead of a user's token
 [functions.notify-submission]
 verify_jwt = false
+
+# Public event list for the site: visitors aren't signed in, so the function checks the origin itself.
+[functions.events]
+verify_jwt = false

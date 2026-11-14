@@ -17,7 +17,7 @@ import {
   type FieldError,
   type SubmissionFields,
 } from '../lib/submission'
-import type { SwimEvent } from '../lib/supabase'
+import { fetchEvents, type SwimEvent } from '../lib/supabase'
 import {
   clearFieldError,
   clearFieldErrors,
@@ -322,12 +322,11 @@ export function initSubmit(): void {
       const [profile, pending, listed] = await Promise.all([
         loadProfile(),
         auth.from('event_submissions').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-        auth.from('events').select('*').gte('dateEnd', today).order('dateStart'),
+        fetchEvents(),
       ])
       if (pending.error) throw pending.error
-      if (listed.error) throw listed.error
       waiting = pending.count ?? 0
-      events = (listed.data ?? []) as SwimEvent[]
+      events = listed.filter((event) => event.dateEnd >= today)
       showNotice(field('load-notice'), null)
 
       if (profile?.blocked) {

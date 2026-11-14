@@ -1,5 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-import { PUBLIC_SUPABASE_KEY, PUBLIC_SUPABASE_URL } from 'astro:env/client'
+import { PUBLIC_SUPABASE_URL } from 'astro:env/client'
 
 export type SwimEvent = {
   id: number
@@ -15,14 +14,22 @@ export type SwimEvent = {
   link: string | null
 }
 
-const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY, {
-  auth: { persistSession: false, autoRefreshToken: false },
-})
+/** The `events` Edge Function; the table itself is closed to visitors. */
+const EVENTS_URL = `${PUBLIC_SUPABASE_URL.replace(/\/+$/, '')}/functions/v1/events`
 
-/** All events, ordered by start date. */
-export async function fetchEvents(): Promise<SwimEvent[]> {
-  const { data, error } = await supabase.from('events').select('*').order('dateStart', { ascending: true })
+/** Thrown when loading events fails; `status` is 429 when the visitor hit the rate limit. */
+export class EventsError extends Error {
+  constructor(readonly status: number) {
+    super(status === 429 ? 'Too many requests, try again shortly' : `Loading events failed (${status})`)
+  }
+}
 
-  if (error) throw error
-  return data ?? []
+/**
+ * All events, ordered by start date. The browser may reuse a response for two minutes;
+ * `fresh` skips that, for "Update events".
+ */
+export async function fetchEvents({ fresh = false }: { fresh?: boolean } = {}): Promise<SwimEvent[]> {
+  const response = await fetch(EVENTS_URL, { cache: fresh ? 'no-cache' : 'default' })
+  if (!response.ok) throw new EventsError(response.status)
+  return (await response.json()) as SwimEvent[]
 }
