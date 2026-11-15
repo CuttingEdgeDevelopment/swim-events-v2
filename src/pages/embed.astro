@@ -1,0 +1,107 @@
+---
+/**
+ * The upcoming-events widget for other sites we allow (ProSwimWorkouts), shown in an iframe:
+ *
+ *   <iframe src="https://swim-events.com/embed/" title="Upcoming swim meets" ...></iframe>
+ *
+ * Options (query string): limit=1..20 (default 5), country=SUI,ITA, theme=light|dark|auto (default auto),
+ * heading=0 to hide the heading. The page reports its height to the parent page (postMessage), so the
+ * snippet can size the iframe. Only the sites in netlify.toml (frame-ancestors) may frame it.
+ */
+import '../styles/tailwind.css'
+import '../assets/scss/index.scss'
+import themeConfig from '@theme-config'
+import EventCardTemplate from '@components/EventCardTemplate.astro'
+---
+
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Upcoming swim meets - Swim Events Calendar</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style
+      define:vars={{
+        brandPrimary: themeConfig.colors.primary,
+        brandSecondary: themeConfig.colors.secondary,
+        brandNeutral: themeConfig.colors.neutral,
+        brandOutline: themeConfig.colors.outline,
+      }}
+    >
+      :global(:root) {
+        --brand-primary: var(--brandPrimary);
+        --brand-secondary: var(--brandSecondary);
+        --brand-neutral: var(--brandNeutral);
+        --brand-outline: var(--brandOutline);
+      }
+    </style>
+    <script is:inline>
+      // Before the first paint, so the widget never flashes the wrong colours
+      ;(() => {
+        const theme = new URLSearchParams(location.search).get('theme')
+        const dark = theme === 'dark' || (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.toggle('darkmode', dark)
+      })()
+    </script>
+  </head>
+  <body class="embed">
+    <main class="embed__main">
+      <h2 id="embed-heading" class="embed__heading">
+        Upcoming swim meets
+      </h2>
+      <p id="embed-status" class="embed__status" role="status">
+        Loading events…
+      </p>
+      <ul id="embed-events" class="event-list" aria-labelledby="embed-heading"></ul>
+      <p class="embed__more">
+        <a href="https://swim-events.com/" target="_blank" rel="noopener">
+          All events on Swim Events<span class="sr-only"> (opens in new tab)</span>
+        </a>
+      </p>
+    </main>
+
+    <EventCardTemplate />
+
+    {import.meta.env.PROD && <script is:inline async src="https://scripts.simpleanalyticscdn.com/latest.js" />}
+
+    <script>
+      import { initEmbed } from '../scripts/embed'
+      initEmbed()
+    </script>
+
+    <style lang="scss" is:global>
+      @use '../assets/scss/base/breakpoint' as *;
+
+      body.embed {
+        background-color: var(--background-color);
+        padding: var(--space-s);
+      }
+
+      .embed__heading {
+        margin-block-end: var(--space-s);
+        font-size: var(--font-size-2);
+      }
+
+      .embed__status:empty {
+        display: none;
+      }
+
+      .embed__more {
+        margin-block-start: var(--space-s);
+        font-size: var(--font-size-0);
+      }
+
+      // the widget leaves out the calendar and share buttons
+      .embed .event-card {
+        grid-template-areas:
+          'countdown badge'
+          'info info';
+
+        @include breakpoint(m) {
+          grid-template-areas: 'info badge countdown';
+        }
+      }
+    </style>
+  </body>
+</html>
