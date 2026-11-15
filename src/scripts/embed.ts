@@ -2,7 +2,7 @@
  * The upcoming-events widget (src/pages/embed.astro): the next few events with their countdown,
  * filled into the same card template as the home page, without the calendar and share buttons.
  */
-import { dateRangeSeparator, eventTiming, formatDateRange, localToday } from '../lib/countdown'
+import { dateRangeSeparator, eventProgress, eventTiming, formatDateRange, localToday } from '../lib/countdown'
 import { countryCode } from '../lib/countries'
 import { flagUrl, listLocation, parseLocation } from '../lib/locations'
 import { fetchEvents, type SwimEvent } from '../lib/supabase'
@@ -26,13 +26,61 @@ export function embedOptions(params: URLSearchParams): EmbedOptions {
   }
 }
 
-/** Ongoing and upcoming events in date order, optionally only in some countries. */
-export function nextEvents(events: SwimEvent[], { limit, countries }: EmbedOptions, today = localToday()): SwimEvent[] {
-  return events
-    .filter((event) => eventTiming(event.dateStart, event.dateEnd, today).kind !== 'past')
+/**
+ * What the widget shows: every event running today (ongoing or starting today) for the stripe on
+ * top, and the next `limit` upcoming events for the list. All in date order, optionally only in
+ * some countries.
+ */
+export function widgetEvents(
+  events: SwimEvent[],
+  { limit, countries }: EmbedOptions,
+  today = localToday(),
+): { live: SwimEvent[]; upcoming: SwimEvent[] } {
+  const shown = events
     .filter((event) => !countries.length || countries.includes(parseLocation(event)?.code ?? ''))
     .sort((a, b) => a.dateStart.localeCompare(b.dateStart))
-    .slice(0, limit)
+  const kind = (event: SwimEvent) => eventTiming(event.dateStart, event.dateEnd, today).kind
+  return {
+    live: shown.filter((event) => kind(event) === 'ongoing' || kind(event) === 'today'),
+    upcoming: shown.filter((event) => kind(event) === 'upcoming').slice(0, limit),
+  }
+}
+
+/** The event name, linked to its website when there is one. */
+function nameNode(event: SwimEvent): Node {
+  if (!event.link) return document.createTextNode(event.name)
+  const link = document.createElement('a')
+  link.href = event.link
+  link.target = '_blank'
+  link.rel = 'noopener noreferrer'
+  const hint = document.createElement('span')
+  hint.className = 'sr-only'
+  hint.textContent = ' (opens in new tab)'
+  link.append(event.name, hint)
+  return link
+}
+
+/** One line of the "Happening now" stripe: badge, name, place and which day it is. */
+function liveItem(event: SwimEvent, today = localToday()): HTMLLIElement {
+  const item = document.createElement('li')
+  item.className = 'live-strip__item'
+  const startsToday = eventTiming(event.dateStart, event.dateEnd, today).kind === 'today'
+  const { day, total } = eventProgress(event.dateStart, event.dateEnd, today)
+
+  const badge = document.createElement('span')
+  badge.className = startsToday ? 'badge badge--info' : 'badge badge--live'
+  badge.textContent = startsToday ? 'Starts today' : 'Ongoing'
+
+  const name = document.createElement('span')
+  name.className = 'live-strip__name'
+  name.append(nameNode(event))
+
+  const details = document.createElement('span')
+  details.className = 'live-strip__details'
+  details.textContent = total > 1 ? `${listLocation(event)} · Day ${day} of ${total}` : listLocation(event)
+
+  item.append(badge, ' ', name, ' ', details)
+  return item
 }
 
 const field = <T extends HTMLElement = HTMLElement>(root: ParentNode, name: string) =>
@@ -140,9 +188,14 @@ export async function initEmbed(): Promise<void> {
   reportHeight()
 
   try {
-    const events = nextEvents(await fetchEvents(), options)
-    list.replaceChildren(...events.map((event) => card(template, event)))
-    status.textContent = events.length ? '' : 'No upcoming events right now.'
+    const { live, upcoming } = widgetEvents(await fetchEvents(), options)
+    const strip = document.getElementById('live-strip')
+    if (strip && live.length) {
+      strip.querySelector('ul')?.replaceChildren(...live.map((event) => liveItem(event)))
+      strip.hidden = false
+    }
+    list.replaceChildren(...upcoming.map((event) => card(template, event)))
+    status.textContent = upcoming.length ? '' : 'No upcoming events right now.'
   } catch (error) {
     console.error('Loading events failed:', error)
     status.textContent = 'The events couldn’t be loaded. Please try again later.'

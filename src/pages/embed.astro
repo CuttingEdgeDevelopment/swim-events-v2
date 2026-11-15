@@ -4,6 +4,7 @@
  *
  *   <iframe src="https://swim-events.com/embed/" title="Upcoming swim meets" ...></iframe>
  *
+ * Running events show in a "Happening now" stripe on top; `limit` counts the upcoming list.
  * Options (query string): limit=1..20 (default 5), country=SUI,ITA, theme=light|dark|auto (default auto),
  * heading=0 to hide the heading. The page reports its height to the parent page (postMessage), so the
  * snippet can size the iframe. Only the sites in netlify.toml (frame-ancestors) may frame it.
@@ -47,6 +48,12 @@ import EventCardTemplate from '@components/EventCardTemplate.astro'
   </head>
   <body class="embed">
     <main class="embed__main">
+      <section id="live-strip" class="live-strip" aria-labelledby="live-heading" hidden>
+        <h2 id="live-heading" class="live-strip__heading">
+          Happening now
+        </h2>
+        <ul class="live-strip__list"></ul>
+      </section>
       <h2 id="embed-heading" class="embed__heading">
         Upcoming swim meets
       </h2>
@@ -76,6 +83,50 @@ import EventCardTemplate from '@components/EventCardTemplate.astro'
       body.embed {
         background-color: var(--background-color);
         padding: var(--space-s);
+      }
+
+      // Running events: one compact line each, above the list
+      .live-strip {
+        margin-block-end: var(--space-m);
+        border: 1px solid var(--border-subtle-color);
+        border-radius: var(--radius-h);
+        border-inline-start: 4px solid var(--brand-primary);
+        background-color: var(--surface-color);
+        padding: var(--space-xs) var(--space-s);
+      }
+
+      .live-strip__heading {
+        margin-block-end: var(--space-2xs);
+        color: var(--text-muted-color);
+        font-weight: 700;
+        font-size: var(--font-size-0);
+        letter-spacing: 0.02em;
+      }
+
+      .live-strip__list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .live-strip__item {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 var(--space-2xs);
+        line-height: 1.4;
+      }
+
+      .live-strip__name {
+        font-weight: 600;
+      }
+
+      .live-strip__details {
+        color: var(--text-muted-color);
+        font-size: var(--font-size-0);
       }
 
       .embed__heading {
