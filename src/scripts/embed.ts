@@ -2,7 +2,15 @@
  * The upcoming-events widget (src/pages/embed.astro): the next few events with their countdown,
  * filled into the same card template as the home page, without the calendar and share buttons.
  */
-import { dateRangeSeparator, eventProgress, eventTiming, formatDateRange, localToday } from '../lib/countdown'
+import {
+  dateRangeSeparator,
+  eventProgress,
+  eventTiming,
+  formatDateRange,
+  localToday,
+  parseCalendarDate,
+  toLocalDate,
+} from '../lib/countdown'
 import { countryCode } from '../lib/countries'
 import { flagUrl, listLocation, parseLocation } from '../lib/locations'
 import { fetchEvents, type SwimEvent } from '../lib/supabase'
@@ -82,19 +90,54 @@ function liveItem(event: SwimEvent, today = localToday()): HTMLLIElement {
 }
 
 /** The "Next up" box: a big countdown to the next event, then its name, place and dates. */
-function nextUp(container: HTMLElement, event: SwimEvent, today = localToday()): void {
-  const timing = eventTiming(event.dateStart, event.dateEnd, today)
-  const days = timing.kind === 'upcoming' ? timing.daysToGo : 0
+export type CountdownParts = { days: number; hours: number; minutes: number }
+
+/** Whole days, hours and minutes left until `target`, never below zero. Rounds up to the next minute. */
+export function countdownParts(target: Date, now: Date = new Date()): CountdownParts {
+  const totalMinutes = Math.max(0, Math.ceil((target.getTime() - now.getTime()) / 60_000))
+  return {
+    days: Math.floor(totalMinutes / 1440),
+    hours: Math.floor((totalMinutes % 1440) / 60),
+    minutes: totalMinutes % 60,
+  }
+}
+
+let countdownTimer: number | undefined
+
+/**
+ * The "Next up" box: a live countdown to midnight (the visitor's time) on the meet's first day,
+ * then its name, place and dates. Calls `onStart` once the countdown reaches zero.
+ */
+function nextUp(container: HTMLElement, event: SwimEvent, onStart: () => void): void {
+  const target = toLocalDate(parseCalendarDate(event.dateStart))
 
   const countdown = document.createElement('p')
   countdown.className = 'next-up__countdown'
-  const number = document.createElement('span')
-  number.className = 'next-up__number'
-  number.textContent = String(days)
-  const unit = document.createElement('span')
-  unit.className = 'next-up__unit'
-  unit.textContent = days === 1 ? ' day to go' : ' days to go'
-  countdown.append(number, unit)
+  const units = (['days', 'hours', 'minutes'] as const).map((key) => {
+    const unit = document.createElement('span')
+    unit.className = 'next-up__part'
+    const number = document.createElement('span')
+    number.className = 'next-up__number'
+    const label = document.createElement('span')
+    label.className = 'next-up__unit'
+    unit.append(number, label)
+    countdown.append(unit)
+    return { key, number, label }
+  })
+  const labels = { days: ['day', 'days'], hours: ['hour', 'hours'], minutes: ['min', 'min'] }
+
+  const tick = () => {
+    const parts = countdownParts(target)
+    for (const { key, number, label } of units) {
+      const value = parts[key]
+      number.textContent = key === 'days' ? String(value) : String(value).padStart(2, '0')
+      label.textContent = labels[key][value === 1 ? 0 : 1]
+    }
+    if (target.getTime() <= Date.now()) {
+      window.clearInterval(countdownTimer)
+      onStart()
+    }
+  }
 
   const name = document.createElement('h3')
   name.className = 'next-up__name'
@@ -105,6 +148,10 @@ function nextUp(container: HTMLElement, event: SwimEvent, today = localToday()):
   details.textContent = `${listLocation(event)} · ${dateText(event)}`
 
   container.replaceChildren(countdown, name, details)
+  window.clearInterval(countdownTimer)
+  tick()
+  // A check every few seconds keeps the minutes exact without a timer per second
+  countdownTimer = window.setInterval(tick, 5_000)
 }
 
 /** "2–7 Dec 2026" as plain text. */
@@ -220,19 +267,24 @@ export async function initEmbed(): Promise<void> {
   reportHeight()
 
   try {
-    const { live, next, upcoming } = widgetEvents(await fetchEvents(), options)
-    const liveSection = document.getElementById('live')
-    if (liveSection && live.length) {
-      liveSection.querySelector('ul')?.replaceChildren(...live.map((event) => liveItem(event)))
-      liveSection.hidden = false
+    const events = await fetchEvents()
+    const render = () => {
+      const { live, next, upcoming } = widgetEvents(events, options, localToday())
+      const liveSection = document.getElementById('live')
+      if (liveSection) {
+        liveSection.querySelector('ul')?.replaceChildren(...live.map((event) => liveItem(event)))
+        liveSection.hidden = !live.length
+      }
+      const nextSection = document.getElementById('next')
+      if (nextSection) {
+        if (next) nextUp(nextSection.querySelector('.next-up') as HTMLElement, next, render)
+        else window.clearInterval(countdownTimer)
+        nextSection.hidden = !next
+      }
+      list.replaceChildren(...upcoming.map((event) => card(template, event)))
+      status.textContent = upcoming.length ? '' : 'No upcoming events right now.'
     }
-    const nextSection = document.getElementById('next')
-    if (nextSection && next) {
-      nextUp(nextSection.querySelector('.next-up') as HTMLElement, next)
-      nextSection.hidden = false
-    }
-    list.replaceChildren(...upcoming.map((event) => card(template, event)))
-    status.textContent = upcoming.length ? '' : 'No upcoming events right now.'
+    render()
   } catch (error) {
     console.error('Loading events failed:', error)
     status.textContent = 'The events couldn’t be loaded. Please try again later.'
