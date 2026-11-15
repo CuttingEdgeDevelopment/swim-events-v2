@@ -27,23 +27,24 @@ export function embedOptions(params: URLSearchParams): EmbedOptions {
 }
 
 /**
- * What the widget shows: every event running today (ongoing or starting today) for the stripe on
- * top, and the next `limit` upcoming events for the list. All in date order, optionally only in
- * some countries.
+ * What the widget shows, in date order and optionally only in some countries:
+ * - `live`: every event running today (ongoing or starting today), for "Happening now";
+ * - `next`: when nothing is running, the next upcoming event, for the "Next up" countdown;
+ * - `upcoming`: the following `limit` upcoming events, for the list.
  */
 export function widgetEvents(
   events: SwimEvent[],
   { limit, countries }: EmbedOptions,
   today = localToday(),
-): { live: SwimEvent[]; upcoming: SwimEvent[] } {
+): { live: SwimEvent[]; next: SwimEvent | null; upcoming: SwimEvent[] } {
   const shown = events
     .filter((event) => !countries.length || countries.includes(parseLocation(event)?.code ?? ''))
     .sort((a, b) => a.dateStart.localeCompare(b.dateStart))
   const kind = (event: SwimEvent) => eventTiming(event.dateStart, event.dateEnd, today).kind
-  return {
-    live: shown.filter((event) => kind(event) === 'ongoing' || kind(event) === 'today'),
-    upcoming: shown.filter((event) => kind(event) === 'upcoming').slice(0, limit),
-  }
+  const live = shown.filter((event) => kind(event) === 'ongoing' || kind(event) === 'today')
+  const later = shown.filter((event) => kind(event) === 'upcoming')
+  const next = live.length ? null : (later[0] ?? null)
+  return { live, next, upcoming: later.slice(next ? 1 : 0, (next ? 1 : 0) + limit) }
 }
 
 /** The event name, linked to its website when there is one. */
@@ -67,20 +68,49 @@ function liveItem(event: SwimEvent, today = localToday()): HTMLLIElement {
   const startsToday = eventTiming(event.dateStart, event.dateEnd, today).kind === 'today'
   const { day, total } = eventProgress(event.dateStart, event.dateEnd, today)
 
-  const badge = document.createElement('span')
-  badge.className = startsToday ? 'badge badge--info' : 'badge badge--live'
-  badge.textContent = startsToday ? 'Starts today' : 'Ongoing'
-
   const name = document.createElement('span')
   name.className = 'live-strip__name'
   name.append(nameNode(event))
 
   const details = document.createElement('span')
   details.className = 'live-strip__details'
-  details.textContent = total > 1 ? `${listLocation(event)} · Day ${day} of ${total}` : listLocation(event)
+  const when = startsToday ? 'Starts today' : total > 1 ? `Day ${day} of ${total}` : ''
+  details.textContent = [listLocation(event), when].filter(Boolean).join(' · ')
 
-  item.append(badge, ' ', name, ' ', details)
+  item.append(name, ' ', details)
   return item
+}
+
+/** The "Next up" box: a big countdown to the next event, then its name, place and dates. */
+function nextUp(container: HTMLElement, event: SwimEvent, today = localToday()): void {
+  const timing = eventTiming(event.dateStart, event.dateEnd, today)
+  const days = timing.kind === 'upcoming' ? timing.daysToGo : 0
+
+  const countdown = document.createElement('p')
+  countdown.className = 'next-up__countdown'
+  const number = document.createElement('span')
+  number.className = 'next-up__number'
+  number.textContent = String(days)
+  const unit = document.createElement('span')
+  unit.className = 'next-up__unit'
+  unit.textContent = days === 1 ? ' day to go' : ' days to go'
+  countdown.append(number, unit)
+
+  const name = document.createElement('h3')
+  name.className = 'next-up__name'
+  name.append(nameNode(event))
+
+  const details = document.createElement('p')
+  details.className = 'next-up__details'
+  details.textContent = `${listLocation(event)} · ${dateText(event)}`
+
+  container.replaceChildren(countdown, name, details)
+}
+
+/** "2–7 Dec 2026" as plain text. */
+function dateText(event: SwimEvent): string {
+  const range = formatDateRange(event.dateStart, event.dateEnd)
+  return range.start ? `${range.start}${dateRangeSeparator(range)}${range.end}` : range.end
 }
 
 const field = <T extends HTMLElement = HTMLElement>(root: ParentNode, name: string) =>
@@ -184,15 +214,22 @@ export async function initEmbed(): Promise<void> {
   const template = document.getElementById('event-card-template') as HTMLTemplateElement | null
   if (!list || !status || !template) return
 
-  if (!options.heading) document.getElementById('embed-heading')?.classList.add('sr-only')
+  if (!options.heading) {
+    document.querySelectorAll('.embed__heading').forEach((heading) => heading.classList.add('sr-only'))
+  }
   reportHeight()
 
   try {
-    const { live, upcoming } = widgetEvents(await fetchEvents(), options)
-    const strip = document.getElementById('live-strip')
-    if (strip && live.length) {
-      strip.querySelector('ul')?.replaceChildren(...live.map((event) => liveItem(event)))
-      strip.hidden = false
+    const { live, next, upcoming } = widgetEvents(await fetchEvents(), options)
+    const liveSection = document.getElementById('live')
+    if (liveSection && live.length) {
+      liveSection.querySelector('ul')?.replaceChildren(...live.map((event) => liveItem(event)))
+      liveSection.hidden = false
+    }
+    const nextSection = document.getElementById('next')
+    if (nextSection && next) {
+      nextUp(nextSection.querySelector('.next-up') as HTMLElement, next)
+      nextSection.hidden = false
     }
     list.replaceChildren(...upcoming.map((event) => card(template, event)))
     status.textContent = upcoming.length ? '' : 'No upcoming events right now.'

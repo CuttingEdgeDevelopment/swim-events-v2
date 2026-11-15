@@ -4,7 +4,8 @@
  *
  *   <iframe src="https://swim-events.com/embed/" title="Upcoming swim meets" ...></iframe>
  *
- * Running events show in a "Happening now" stripe on top; `limit` counts the upcoming list.
+ * Running events show under "Happening now"; when none are running, "Next up" counts down to the
+ * next event instead. `limit` counts the "Upcoming" list.
  * Options (query string): limit=1..20 (default 5), country=SUI,ITA, theme=light|dark|auto (default auto),
  * heading=0 to hide the heading. The page reports its height to the parent page (postMessage), so the
  * snippet can size the iframe. Only the sites in netlify.toml (frame-ancestors) may frame it.
@@ -48,14 +49,20 @@ import EventCardTemplate from '@components/EventCardTemplate.astro'
   </head>
   <body class="embed">
     <main class="embed__main">
-      <section id="live-strip" class="live-strip" aria-labelledby="live-heading" hidden>
-        <h2 id="live-heading" class="live-strip__heading">
+      <section id="live" class="embed__section" aria-labelledby="live-heading" hidden>
+        <h2 id="live-heading" class="embed__heading">
           Happening now
         </h2>
-        <ul class="live-strip__list"></ul>
+        <ul class="live-strip"></ul>
+      </section>
+      <section id="next" class="embed__section" aria-labelledby="next-heading" hidden>
+        <h2 id="next-heading" class="embed__heading">
+          Next up
+        </h2>
+        <div class="next-up live-strip"></div>
       </section>
       <h2 id="embed-heading" class="embed__heading">
-        Upcoming swim meets
+        Upcoming
       </h2>
       <p id="embed-status" class="embed__status" role="status">
         Loading events…
@@ -85,30 +92,21 @@ import EventCardTemplate from '@components/EventCardTemplate.astro'
         padding: var(--space-s);
       }
 
-      // Running events: one compact line each, above the list
-      .live-strip {
+      .embed__section {
         margin-block-end: var(--space-m);
+      }
+
+      // Running events (one compact line each) and the "Next up" countdown share this box
+      .live-strip {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+        margin: 0;
         border: 1px solid var(--border-subtle-color);
         border-radius: var(--radius-h);
         border-inline-start: 4px solid var(--brand-primary);
         background-color: var(--surface-color);
         padding: var(--space-xs) var(--space-s);
-      }
-
-      .live-strip__heading {
-        margin-block-end: var(--space-2xs);
-        color: var(--text-muted-color);
-        font-weight: 700;
-        font-size: var(--font-size-0);
-        letter-spacing: 0.02em;
-      }
-
-      .live-strip__list {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-2xs);
-        margin: 0;
-        padding: 0;
         list-style: none;
       }
 
@@ -124,9 +122,32 @@ import EventCardTemplate from '@components/EventCardTemplate.astro'
         font-weight: 600;
       }
 
-      .live-strip__details {
+      .live-strip__details,
+      .next-up__details {
         color: var(--text-muted-color);
         font-size: var(--font-size-0);
+      }
+
+      .next-up {
+        gap: 0;
+        padding-block: var(--space-s);
+      }
+
+      .next-up__number {
+        color: var(--pool-color);
+        font-weight: 700;
+        font-size: var(--font-size-6);
+        line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .next-up__unit {
+        color: var(--text-muted-color);
+      }
+
+      .next-up__name {
+        margin-block-start: var(--space-2xs);
+        font-size: var(--font-size-1);
       }
 
       .embed__heading {
