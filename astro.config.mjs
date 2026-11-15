@@ -36,7 +36,7 @@ const viteConfig = {
 export default defineConfig({
   compressHTML: true,
   site: 'https://swim-events.com',
-  integrations: [compress(), icon(), sitemap()],
+  integrations: [compress(), icon(), sitemap({ filter: (page) => !page.includes('/embed') })],
   vite: viteConfig,
   env: {
     schema: {

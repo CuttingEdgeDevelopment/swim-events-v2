@@ -1,0 +1,191 @@
+---
+/**
+ * The upcoming-events widget for other sites we allow (ProSwimWorkouts), shown in an iframe:
+ *
+ *   <iframe src="https://swim-events.com/embed/" title="Upcoming swim meets" ...></iframe>
+ *
+ * Running events show under "Happening now"; when none are running, "Next up" counts down to the
+ * next event instead. `limit` counts the "Upcoming" list.
+ * Options (query string): limit=1..20 (default 5), country=SUI,ITA, theme=light|dark|auto (default auto),
+ * heading=0 to hide the heading. The page reports its height to the parent page (postMessage), so the
+ * snippet can size the iframe. Only the sites in netlify.toml (frame-ancestors) may frame it.
+ */
+import '../styles/tailwind.css'
+import '../assets/scss/index.scss'
+import themeConfig from '@theme-config'
+import EventCardTemplate from '@components/EventCardTemplate.astro'
+---
+
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Upcoming swim meets - Swim Events Calendar</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style
+      define:vars={{
+        brandPrimary: themeConfig.colors.primary,
+        brandSecondary: themeConfig.colors.secondary,
+        brandNeutral: themeConfig.colors.neutral,
+        brandOutline: themeConfig.colors.outline,
+      }}
+    >
+      :global(:root) {
+        --brand-primary: var(--brandPrimary);
+        --brand-secondary: var(--brandSecondary);
+        --brand-neutral: var(--brandNeutral);
+        --brand-outline: var(--brandOutline);
+      }
+    </style>
+    <script is:inline>
+      // Before the first paint, so the widget never flashes the wrong colours
+      ;(() => {
+        const theme = new URLSearchParams(location.search).get('theme')
+        const dark = theme === 'dark' || (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.toggle('darkmode', dark)
+      })()
+    </script>
+  </head>
+  <body class="embed">
+    <main class="embed__main">
+      <section id="live" class="embed__section" aria-labelledby="live-heading" hidden>
+        <h2 id="live-heading" class="embed__heading">
+          Happening now
+        </h2>
+        <ul class="live-strip"></ul>
+      </section>
+      <section id="next" class="embed__section" aria-labelledby="next-heading" hidden>
+        <h2 id="next-heading" class="embed__heading">
+          Next up
+        </h2>
+        <div class="next-up live-strip"></div>
+      </section>
+      <h2 id="embed-heading" class="embed__heading">
+        Upcoming
+      </h2>
+      <p id="embed-status" class="embed__status" role="status">
+        Loading events…
+      </p>
+      <ul id="embed-events" class="event-list" aria-labelledby="embed-heading"></ul>
+      <p class="embed__more">
+        <a href="https://swim-events.com/" target="_blank" rel="noopener">
+          All events on the calendar<span class="sr-only"> (opens in new tab)</span>
+        </a>
+      </p>
+    </main>
+
+    <EventCardTemplate />
+
+    {import.meta.env.PROD && <script is:inline async src="https://scripts.simpleanalyticscdn.com/latest.js" />}
+
+    <script>
+      import { initEmbed } from '../scripts/embed'
+      initEmbed()
+    </script>
+
+    <style lang="scss" is:global>
+      @use '../assets/scss/base/breakpoint' as *;
+
+      body.embed {
+        background-color: var(--background-color);
+        padding: var(--space-s);
+      }
+
+      .embed__section {
+        margin-block-end: var(--space-m);
+      }
+
+      // Running events (one compact line each) and the "Next up" countdown share this box
+      .live-strip {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+        margin: 0;
+        border: 2px solid var(--brand-primary);
+        border-radius: var(--radius-h);
+        background-color: var(--surface-color);
+        padding: var(--space-xs) var(--space-s);
+        list-style: none;
+      }
+
+      .live-strip__item {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 var(--space-2xs);
+        line-height: 1.4;
+      }
+
+      .live-strip__name {
+        font-weight: 600;
+      }
+
+      .live-strip__details,
+      .next-up__details {
+        color: var(--text-muted-color);
+        font-size: var(--font-size-0);
+      }
+
+      .next-up {
+        gap: 0;
+        padding-block: var(--space-s);
+      }
+
+      .next-up__countdown {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-s);
+        margin: 0;
+      }
+
+      .next-up__part {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0.25em;
+      }
+
+      .next-up__number {
+        color: var(--pool-color);
+        font-weight: 700;
+        font-size: var(--font-size-6);
+        line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .next-up__unit {
+        color: var(--text-muted-color);
+      }
+
+      .next-up__name {
+        margin-block-start: var(--space-2xs);
+        font-size: var(--font-size-1);
+      }
+
+      .embed__heading {
+        margin-block-end: var(--space-s);
+        font-size: var(--font-size-2);
+      }
+
+      .embed__status:empty {
+        display: none;
+      }
+
+      .embed__more {
+        margin-block-start: var(--space-s);
+        font-size: var(--font-size-0);
+      }
+
+      // the widget leaves out the calendar and share buttons
+      .embed .event-card {
+        grid-template-areas:
+          'countdown badge'
+          'info info';
+
+        @include breakpoint(m) {
+          grid-template-areas: 'info badge countdown';
+        }
+      }
+    </style>
+  </body>
+</html>
