@@ -57,7 +57,7 @@
     "@astrojs/check": "^0.9.12",
     "@astrojs/sitemap": "^3.7.3",
     "@supabase/supabase-js": "^2.119.0",
-    "@tailwindcss/vite": "^4.3.4",
+    "@tailwindcss/vite": "^4.3.5",
     "accessible-astro-components": "^5.8.1",
     "add-to-calendar-button": "3.5.1",
     "astro-seo": "^1.1.0",
