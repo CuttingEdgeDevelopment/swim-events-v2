@@ -1,4 +1,5 @@
-# Once a day, load the events the same way the site does. If that fails, open (or comment on)
+# Once a day, load the events the same way the site does (through the `events` Edge Function,
+# since the table itself is closed to visitors). If that fails, open (or comment on)
 # an issue assigned to the site owner, and close it again once events load.
 name: Events check
 
@@ -25,19 +26,20 @@ jobs:
         id: load
         env:
           SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
-          SUPABASE_KEY: ${{ vars.PUBLIC_SUPABASE_KEY }}
+          # The function only answers the site's own origins
+          SITE_ORIGIN: https://swim-events.com
         run: |
-          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_KEY" ]; then
-            problem="The repository variables PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_KEY are not set."
+          if [ -z "$SUPABASE_URL" ]; then
+            problem="The repository variable PUBLIC_SUPABASE_URL is not set."
           else
             status=$(curl -sS -o body.json -w '%{http_code}' --max-time 30 --retry 2 --retry-all-errors \
-              -H "apikey: $SUPABASE_KEY" "$SUPABASE_URL/rest/v1/events?select=id&limit=1") || status=000
+              -H "Origin: $SITE_ORIGIN" "${SUPABASE_URL%/}/functions/v1/events") || status=000
             if [ "$status" = 000 ]; then
               problem="Could not reach Supabase at $SUPABASE_URL."
             elif [ "$status" != 200 ]; then
               problem="Supabase answered HTTP $status: $(head -c 500 body.json 2>/dev/null || true)"
             elif [ "$(jq length body.json)" = 0 ]; then
-              # An empty answer usually means a row-level security change, since the site never has zero events
+              # An empty answer means something changed on the database side, since the site never has zero events
               problem="Supabase answered, but returned no events."
             fi
           fi
