@@ -35,7 +35,7 @@
     "@types/sanitize-html": "^2.16.1",
     "@typescript-eslint/eslint-plugin": "^8.72.1",
     "@typescript-eslint/parser": "^8.59.1",
-    "astro": "^7.4.5",
+    "astro": "^7.4.8",
     "astro-compress": "^2.4.3",
     "astro-eslint-parser": "^3.2.0",
     "astro-icon": "^1.1.5",
