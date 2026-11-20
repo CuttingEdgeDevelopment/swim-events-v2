@@ -1,0 +1,15 @@
+---
+// The placeholder from https://docs.simpleanalytics.com/events: `sa_event` exists before the
+// Simple Analytics script loads (calls are queued and sent once it does), and when an ad blocker
+// stops the script, so calls from src/lib/analytics.ts never throw.
+---
+
+<script is:inline>
+  window.sa_event =
+    window.sa_event ||
+    function () {
+      var a = [].slice.call(arguments)
+      if (window.sa_event.q) window.sa_event.q.push(a)
+      else window.sa_event.q = [a]
+    }
+</script>

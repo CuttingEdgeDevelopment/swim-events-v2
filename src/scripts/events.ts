@@ -27,6 +27,7 @@ import {
 import { COUNTRIES } from '../lib/countries'
 import { flagUrl, listLocation, parseLocation, shortLocation } from '../lib/locations'
 import { fetchEvents, type SwimEvent } from '../lib/supabase'
+import { initClickTracking, labelEvent } from '../lib/analytics'
 import { initShare, shareButton } from './share'
 
 const LOCALE = 'en-US'
@@ -156,6 +157,8 @@ function fillName(root: DocumentFragment, event: SwimEvent): void {
   hint.className = 'sr-only'
   hint.textContent = ' (opens in new tab)'
   link.href = event.link
+  link.dataset.track = 'official_link'
+  labelEvent(link, event)
   link.replaceChildren(event.name, hint)
   link.hidden = false
   name.remove()
@@ -194,6 +197,7 @@ function fillCalendar(container: HTMLElement, event: SwimEvent): void {
   if (event.link) attributes.description = `Event website: [url]${event.link}[/url]`
 
   for (const [name, value] of Object.entries(attributes)) button.setAttribute(name, value)
+  labelEvent(button, event)
   container.replaceChildren(button)
 }
 
@@ -265,7 +269,9 @@ function fillShare(container: HTMLElement, event: SwimEvent): void {
     .filter(Boolean)
     .join('\n')
   const button = shareButton({ title: event.name, text: message, url: eventUrl(event) }, event.name)
-  if (button) container.append(button)
+  if (!button) return
+  labelEvent(button.querySelector<HTMLElement>('.share-button')!, event)
+  container.append(button)
 }
 
 /** Every card and row gets the event's id, which a shared link (#event-123) points to. */
@@ -852,6 +858,7 @@ export function initEvents(): void {
     })
   }
   initShare()
+  initClickTracking()
   initFilters()
   initYearFilter()
   renderToday(localToday())
