@@ -14,6 +14,7 @@ import '../styles/tailwind.css'
 import '../assets/scss/index.scss'
 import themeConfig from '@theme-config'
 import EventCardTemplate from '@components/EventCardTemplate.astro'
+import SimpleAnalyticsEvents from '@components/SimpleAnalyticsEvents.astro'
 ---
 
 <html lang="en" dir="ltr">
@@ -23,6 +24,7 @@ import EventCardTemplate from '@components/EventCardTemplate.astro'
     <meta name="robots" content="noindex" />
     <title>Upcoming swim meets - Swim Events Calendar</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <SimpleAnalyticsEvents />
     <style
       define:vars={{
         brandPrimary: themeConfig.colors.primary,

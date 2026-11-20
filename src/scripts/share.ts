@@ -3,6 +3,7 @@
  * Windows), Share opens it. Elsewhere it opens a small menu with Copy link, WhatsApp and
  * Email: plain links, no third-party scripts.
  */
+import { eventMetadata, track } from '../lib/analytics'
 
 export type ShareData = { title: string; text: string; url: string }
 
@@ -104,6 +105,7 @@ async function copyLink(button: HTMLButtonElement): Promise<void> {
   try {
     await navigator.clipboard.writeText(url)
     showCopied(button)
+    track('share', { method: 'copy', ...eventMetadata(button) })
   } catch {
     // No clipboard access (an old browser or a blocked permission): show the link to copy by hand
     window.prompt('Copy this link:', url)
@@ -119,6 +121,7 @@ async function share(button: HTMLButtonElement): Promise<void> {
 
   try {
     await navigator.share(dataOf(button))
+    track('share', { method: 'native', ...eventMetadata(button) })
   } catch (error) {
     // Closing the share sheet is not an error; anything else falls back to the menu
     if ((error as DOMException).name === 'AbortError') return
@@ -146,8 +149,11 @@ export function initShare(): void {
       return
     }
     // WhatsApp and Email open on their own; the menu closes behind them
-    if (item) setTimeout(() => closeMenus())
-    else if (!target.closest('.share-menu')) closeMenus()
+    if (item) {
+      const button = item.closest('.share-menu')?.previousElementSibling
+      if (item.dataset.share && button) track('share', { method: item.dataset.share, ...eventMetadata(button) })
+      setTimeout(() => closeMenus())
+    } else if (!target.closest('.share-menu')) closeMenus()
   })
 
   document.addEventListener('keydown', (event) => {

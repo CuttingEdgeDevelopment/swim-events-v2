@@ -13,6 +13,7 @@ import {
 } from '../lib/countdown'
 import { countryCode } from '../lib/countries'
 import { flagUrl, listLocation, parseLocation } from '../lib/locations'
+import { initClickTracking, labelEvent } from '../lib/analytics'
 import { fetchEvents, type SwimEvent } from '../lib/supabase'
 
 const DEFAULT_LIMIT = 5
@@ -62,6 +63,8 @@ function nameNode(event: SwimEvent): Node {
   link.href = event.link
   link.target = '_blank'
   link.rel = 'noopener noreferrer'
+  link.dataset.track = 'official_link'
+  labelEvent(link, event)
   const hint = document.createElement('span')
   hint.className = 'sr-only'
   hint.textContent = ' (opens in new tab)'
@@ -183,6 +186,8 @@ function card(template: HTMLTemplateElement, event: SwimEvent): DocumentFragment
     hint.className = 'sr-only'
     hint.textContent = ' (opens in new tab)'
     link.href = event.link
+    link.dataset.track = 'official_link'
+    labelEvent(link, event)
     link.replaceChildren(event.name, hint)
     link.hidden = false
     name.remove()
@@ -265,6 +270,7 @@ export async function initEmbed(): Promise<void> {
     document.querySelectorAll('.embed__heading').forEach((heading) => heading.classList.add('sr-only'))
   }
   reportHeight()
+  initClickTracking()
 
   try {
     const events = await fetchEvents()
