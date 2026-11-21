@@ -1,8 +1,8 @@
 # Search engines and AI assistants that look things up for people are welcome.
+# Account, Submit and Embed are not blocked here on purpose: they carry a noindex tag, which
+# search engines only see when they may crawl the page.
 User-agent: *
 Allow: /
-Disallow: /account
-Disallow: /submit
 
 # Crawlers that collect content to train AI models are not (see the terms of service).
 User-agent: GPTBot

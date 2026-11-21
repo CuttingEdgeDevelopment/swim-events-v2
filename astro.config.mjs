@@ -5,6 +5,10 @@ import icon from 'astro-icon'
 import sitemap from '@astrojs/sitemap'
 import tailwindcss from '@tailwindcss/vite'
 
+// Pages kept out of search results: they carry a noindex tag (embed.astro, and the noindex prop of
+// DefaultLayout), and robots.txt must not block them, or search engines never see the tag
+const NOT_IN_SITEMAP = ['/embed', '/account', '/submit', '/404']
+
 const viteConfig = {
   css: {
     preprocessorOptions: {
@@ -36,7 +40,11 @@ const viteConfig = {
 export default defineConfig({
   compressHTML: true,
   site: 'https://swim-events.com',
-  integrations: [compress(), icon(), sitemap({ filter: (page) => !page.includes('/embed') })],
+  integrations: [
+    compress(),
+    icon(),
+    sitemap({ filter: (page) => !NOT_IN_SITEMAP.some((path) => new URL(page).pathname.startsWith(path)) }),
+  ],
   vite: viteConfig,
   env: {
     schema: {
