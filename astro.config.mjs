@@ -4,6 +4,7 @@ import compress from 'astro-compress'
 import icon from 'astro-icon'
 import sitemap from '@astrojs/sitemap'
 import tailwindcss from '@tailwindcss/vite'
+import prerenderEvents from './src/integrations/prerender-events'
 
 // Pages kept out of search results: they carry a noindex tag (embed.astro, and the noindex prop of
 // DefaultLayout), and robots.txt must not block them, or search engines never see the tag
@@ -41,6 +42,8 @@ export default defineConfig({
   compressHTML: true,
   site: 'https://swim-events.com',
   integrations: [
+    // Before compress(), which minifies what it writes
+    prerenderEvents(),
     compress(),
     icon(),
     sitemap({ filter: (page) => !NOT_IN_SITEMAP.some((path) => new URL(page).pathname.startsWith(path)) }),

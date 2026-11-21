@@ -1,0 +1,35 @@
+# Every night, ask Netlify to rebuild the live site. The build writes the events into the home page
+# (src/integrations/prerender-events.ts), so a rebuild picks up new events and moves the ones that
+# ended to Past. Visitors always get the latest events from their browser anyway; this keeps the
+# built page, which search engines read, up to date.
+#
+# 01:00 UTC is 02:00 in Zurich in winter and 03:00 in summer. NETLIFY_BUILD_HOOK is the build
+# hook's URL (Netlify: Project configuration > Build & deploy > Build hooks), saved as a repository
+# secret. If the events can't be loaded, the build fails and Netlify keeps the last version live.
+name: Nightly rebuild
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: nightly-rebuild
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger the Netlify build hook
+        env:
+          BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
+        run: |
+          if [ -z "$BUILD_HOOK" ]; then
+            echo "::error::The repository secret NETLIFY_BUILD_HOOK is not set."
+            exit 1
+          fi
+          curl -sS -f -X POST -d '{}' --max-time 30 --retry 2 --retry-all-errors \
+            "$BUILD_HOOK?trigger_title=Nightly+rebuild" > /dev/null
+          echo "Netlify is rebuilding the site."
