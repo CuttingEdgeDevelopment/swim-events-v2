@@ -39,6 +39,11 @@ interface Props {
    * Set to false to use the title as-is without appending site name
    */
   useTitleTemplate?: boolean
+  /**
+   * Ask search engines not to show this page in results (default: false).
+   * Keep such pages crawlable in robots.txt, or search engines never see the tag.
+   */
+  noindex?: boolean
 }
 
 const {
@@ -49,6 +54,7 @@ const {
   author = themeConfig.seo.author ?? '',
   type = 'website',
   useTitleTemplate = true,
+  noindex = false,
 } = Astro.props
 
 // For social sharing, we need the full absolute URL
@@ -91,6 +97,7 @@ const imageUrl = new URL(imagePath, Astro.site).href
       titleDefault={themeConfig.seo.title}
       description={description}
       canonical={url}
+      noindex={noindex}
       openGraph={{
         basic: {
           title: title,
