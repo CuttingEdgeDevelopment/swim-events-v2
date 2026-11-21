@@ -47,7 +47,7 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
 
       <noscript>
         <Notification type="warning">
-          <p>This page needs JavaScript to load the events and calculate the countdowns.</p>
+          <p>The countdowns, filters and Add to calendar need JavaScript. The list below may be up to a day old.</p>
         </Notification>
       </noscript>
 
@@ -96,6 +96,7 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
         </TabsList>
         <TabsPanel id="upcoming-panel" labelledby="upcoming-tab" class="event-tabs__panel" selected>
           <ul id="upcoming-events" class="event-groups">
+            {/* Shown in development only: the build replaces them with the events (src/integrations/prerender-events.ts) */}
             {
               [1, 2].map(() => (
                 <li class="event-placeholder" aria-hidden="true">
@@ -132,8 +133,9 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
 
 <script>
   import { initEvents } from '../scripts/events'
+  import { fetchEvents } from '../lib/supabase'
 
-  document.addEventListener('astro:page-load', initEvents)
+  document.addEventListener('astro:page-load', () => initEvents(fetchEvents))
 </script>
 
 <style lang="scss">

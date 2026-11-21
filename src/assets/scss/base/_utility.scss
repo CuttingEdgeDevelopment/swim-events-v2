@@ -110,6 +110,17 @@
   white-space: nowrap;
 }
 
+// Filled in by the browser (src/scripts/events.ts). The built page keeps their room, invisible and
+// with one blank line for each empty part, so nothing moves when the countdowns appear.
+[data-pending] {
+  visibility: hidden;
+}
+
+[data-pending]:empty::before,
+[data-pending] :empty::before {
+  content: '\a0';
+}
+
 $space-map: (
   3xs: var(--space-3xs),
   2xs: var(--space-2xs),

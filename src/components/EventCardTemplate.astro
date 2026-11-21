@@ -3,8 +3,9 @@
  * EventCardTemplate Component
  *
  * @description HTML <template>s for one card in the Upcoming list and one row in the Past
- * list. Events are loaded in the browser, so `src/scripts/events.ts` clones and fills them,
- * including the "Add to calendar" button on upcoming cards.
+ * list. `src/scripts/events.ts` clones and fills them: once at build time, so the built page
+ * already lists every event (src/integrations/prerender-events.ts), then again in the browser
+ * with the latest events, including the "Add to calendar" button on upcoming cards.
  */
 ---
 

@@ -12,8 +12,9 @@ import {
   toLocalDate,
 } from '../lib/countdown'
 import { countryCode } from '../lib/countries'
-import { flagUrl, listLocation, parseLocation } from '../lib/locations'
+import { listLocation, parseLocation } from '../lib/locations'
 import { initClickTracking, labelEvent } from '../lib/analytics'
+import { field, fillDates, fillName, fillPlace } from '../lib/event-card'
 import { fetchEvents, type SwimEvent } from '../lib/supabase'
 
 const DEFAULT_LIMIT = 5
@@ -163,9 +164,6 @@ function dateText(event: SwimEvent): string {
   return range.start ? `${range.start}${dateRangeSeparator(range)}${range.end}` : range.end
 }
 
-const field = <T extends HTMLElement = HTMLElement>(root: ParentNode, name: string) =>
-  root.querySelector<T>(`[data-field="${name}"]`) as T
-
 function card(template: HTMLTemplateElement, event: SwimEvent): DocumentFragment {
   const root = template.content.cloneNode(true) as DocumentFragment
   const timing = eventTiming(event.dateStart, event.dateEnd, localToday())
@@ -179,46 +177,9 @@ function card(template: HTMLTemplateElement, event: SwimEvent): DocumentFragment
     oldHeading.replaceWith(heading)
   }
 
-  const name = field(root, 'name')
-  if (event.link) {
-    const link = field<HTMLAnchorElement>(root, 'link')
-    const hint = document.createElement('span')
-    hint.className = 'sr-only'
-    hint.textContent = ' (opens in new tab)'
-    link.href = event.link
-    link.dataset.track = 'official_link'
-    labelEvent(link, event)
-    link.replaceChildren(event.name, hint)
-    link.hidden = false
-    name.remove()
-  } else {
-    name.textContent = event.name
-  }
-
-  const place = field(root, 'place')
-  const code = parseLocation(event)?.code
-  const src = code ? flagUrl(code) : null
-  const parts: (Node | string)[] = []
-  if (src) {
-    const flag = document.createElement('img')
-    Object.assign(flag, { className: 'flag', src, alt: '', width: 18, height: 18, decoding: 'async' })
-    parts.push(flag)
-  }
-  parts.push(listLocation(event))
-  place.replaceChildren(...parts)
-
-  const range = formatDateRange(event.dateStart, event.dateEnd)
-  const end = document.createElement('time')
-  end.dateTime = event.dateEnd.slice(0, 10)
-  end.textContent = range.end
-  if (range.start) {
-    const start = document.createElement('time')
-    start.dateTime = event.dateStart.slice(0, 10)
-    start.textContent = range.start
-    field(root, 'dates').replaceChildren(start, dateRangeSeparator(range), end)
-  } else {
-    field(root, 'dates').replaceChildren(end)
-  }
+  fillName(root, event)
+  fillPlace(field(root, 'place'), event, listLocation(event))
+  fillDates(field(root, 'dates'), event)
 
   field(root, 'actions').remove()
 

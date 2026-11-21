@@ -36,8 +36,9 @@ jobs:
         run: npx astro check
 
       - name: Build
-        # The build only needs the values to exist; it does not call Supabase. Dependabot runs get
-        # no repository variables, so they fall back to placeholders.
+        # The build loads the events once to write them into the home page
+        # (src/integrations/prerender-events.ts). Dependabot runs get no repository variables, so they
+        # fall back to placeholders, and that step is skipped.
         env:
           PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           PUBLIC_SUPABASE_KEY: ${{ vars.PUBLIC_SUPABASE_KEY || 'placeholder' }}

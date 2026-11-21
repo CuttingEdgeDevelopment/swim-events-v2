@@ -25,9 +25,10 @@ import {
   type Period,
 } from '../lib/filters'
 import { COUNTRIES } from '../lib/countries'
-import { flagUrl, listLocation, parseLocation, shortLocation } from '../lib/locations'
-import { fetchEvents, type SwimEvent } from '../lib/supabase'
+import { listLocation, shortLocation } from '../lib/locations'
+import type { SwimEvent } from '../lib/supabase'
 import { initClickTracking, labelEvent } from '../lib/analytics'
+import { field, fillDates, fillName, fillPlace, flagImage } from '../lib/event-card'
 import { initShare, shareButton } from './share'
 
 const LOCALE = 'en-US'
@@ -52,16 +53,30 @@ let pastYear = ''
 let pastPages = 1
 let pastListKey = ''
 let hashBound = false
+/**
+ * True while `prerenderEvents` writes the lists into the page at build time. The built page
+ * then shows only what stays true until the next build (names, places, dates); everything
+ * that depends on today (countdowns, "Ongoing", "Finished 3 days ago") is left for the browser.
+ */
+let atBuild = false
+
+/** At build: keeps the room of something the browser fills in, so the page doesn't move then. */
+function reserve(element: HTMLElement | null): void {
+  if (!element) return
+  element.hidden = false
+  element.dataset.pending = ''
+}
+type LoadEvents = (options: { fresh?: boolean }) => Promise<SwimEvent[]>
+let fetchEvents: LoadEvents = async () => []
 let highlightTimer: ReturnType<typeof setTimeout> | undefined
 /** How long the event a shared link points to stays outlined; the fade in ShareMenu.astro matches. */
 const HIGHLIGHT_FOR_MS = 3000
 
-/** Past events per page: fewer on small screens, where each takes more room. */
-const pastPageSize = () => (matchMedia('(min-width: 768px)').matches ? 20 : 10)
-
-function field<T extends HTMLElement = HTMLElement>(root: Element | DocumentFragment, name: string): T {
-  return root.querySelector<T>(`[data-field="${name}"]`)!
-}
+/**
+ * Past events per page: fewer on small screens, where each takes more room. At build, all of
+ * them, so every event is in the page; the Past tab is closed then, and the browser pages it on load.
+ */
+const pastPageSize = () => (atBuild ? Infinity : matchMedia('(min-width: 768px)').matches ? 20 : 10)
 
 /** Announce `text` through the status line beside the button, without showing it. */
 function announce(text: string): void {
@@ -124,44 +139,7 @@ function renderToday(today: CalendarDate): void {
   dateField.textContent = headerDate.format(date)
   dateField.dateTime = isoDate(today)
   container.hidden = false
-}
-
-/** "2–7 Dec 2026" as one or two `<time>` elements. */
-function fillDates(container: HTMLElement, event: SwimEvent): void {
-  const range = formatDateRange(event.dateStart, event.dateEnd)
-  const end = document.createElement('time')
-  end.dateTime = event.dateEnd.slice(0, 10)
-  end.textContent = range.end
-
-  if (!range.start) {
-    container.replaceChildren(end)
-    return
-  }
-
-  const start = document.createElement('time')
-  start.dateTime = event.dateStart.slice(0, 10)
-  start.textContent = range.start
-  container.replaceChildren(start, dateRangeSeparator(range), end)
-}
-
-/** The event name, as a link to the event website when there is one. */
-function fillName(root: DocumentFragment, event: SwimEvent): void {
-  const name = field(root, 'name')
-  if (!event.link) {
-    name.textContent = event.name
-    return
-  }
-
-  const link = field<HTMLAnchorElement>(root, 'link')
-  const hint = document.createElement('span')
-  hint.className = 'sr-only'
-  hint.textContent = ' (opens in new tab)'
-  link.href = event.link
-  link.dataset.track = 'official_link'
-  labelEvent(link, event)
-  link.replaceChildren(event.name, hint)
-  link.hidden = false
-  name.remove()
+  delete container.dataset.pending
 }
 
 /** The site's dark mode is a class on `<html>`, which the calendar button doesn't know about. */
@@ -175,7 +153,7 @@ let calendarScript: Promise<unknown> | null = null
  * Screen readers hear "Add to calendar: <event name>", so every button has its own name.
  */
 function fillCalendar(container: HTMLElement, event: SwimEvent): void {
-  calendarScript ??= import('add-to-calendar-button')
+  if (!atBuild) calendarScript ??= import('add-to-calendar-button')
 
   const button = document.createElement('add-to-calendar-button')
   const attributes: Record<string, string> = {
@@ -201,35 +179,12 @@ function fillCalendar(container: HTMLElement, event: SwimEvent): void {
   container.replaceChildren(button)
 }
 
-/** A decorative round flag; the country is always named in the text next to it. */
-function flagImage(code: string): HTMLImageElement | null {
-  const src = flagUrl(code)
-  if (!src) return null
-
-  const image = document.createElement('img')
-  image.className = 'flag'
-  image.src = src
-  image.alt = ''
-  image.width = 18
-  image.height = 18
-  image.decoding = 'async'
-  image.loading = 'lazy'
-  image.addEventListener('error', () => image.remove())
-  return image
-}
-
-/** The place text with the country's flag in front of it, when there is one. */
-function fillPlace(container: HTMLElement, event: SwimEvent, text: string): void {
-  const code = parseLocation(event)?.code
-  const flag = code ? flagImage(code) : null
-  container.replaceChildren(...(flag ? [flag] : []), text)
-}
-
 /** The link to `event` on the home page, e.g. https://swim-events.com/#event-123 */
 const eventUrl = (event: SwimEvent) => `${location.origin}/#event-${event.id}`
 
 /** "Starts in 30 days", "Starts tomorrow", "Starts today" or "Happening now"; nothing once it's over. */
 function countdownText(event: SwimEvent): string {
+  if (atBuild) return ''
   const timing = eventTiming(event.dateStart, event.dateEnd, localToday())
   switch (timing.kind) {
     case 'ongoing':
@@ -295,6 +250,10 @@ function renderCard(template: HTMLTemplateElement, event: SwimEvent, today: Cale
   const number = field(card, 'number')
   const unit = field(card, 'unit')
 
+  if (atBuild) {
+    reserve(field(card, 'countdown'))
+    return card
+  }
   switch (timing.kind) {
     case 'ongoing':
       badge.textContent = 'Ongoing'
@@ -328,7 +287,10 @@ function renderPastRow(template: HTMLTemplateElement, event: SwimEvent, today: C
   fillName(row, event)
   fillPlace(field(row, 'place'), event, listLocation(event))
   fillDates(field(row, 'dates'), event)
-  field(row, 'finished').textContent = daysAgo === 1 ? 'Finished yesterday' : `Finished ${daysAgo} days ago`
+  if (atBuild) reserve(field(row, 'finished'))
+  else {
+    field(row, 'finished').textContent = daysAgo === 1 ? 'Finished yesterday' : `Finished ${daysAgo} days ago`
+  }
   fillShare(field(row, 'actions'), event)
   setEventId(row, event)
   return row
@@ -374,9 +336,12 @@ function renderLiveCard(template: HTMLTemplateElement, event: SwimEvent, today: 
   const isToday = eventTiming(event.dateStart, event.dateEnd, today).kind === 'today'
   const { day, total } = eventProgress(event.dateStart, event.dateEnd, today)
 
-  field(card, isToday ? 'badge-today' : 'badge-ongoing').hidden = false
+  if (!atBuild) field(card, isToday ? 'badge-today' : 'badge-ongoing').hidden = false
   // One-day meets only show the badge, "1 / 1 days" says nothing
-  if (total > 1) {
+  if (atBuild) {
+    reserve(field(card, 'badge-ongoing'))
+    reserve(field(card, 'progress'))
+  } else if (total > 1) {
     field(card, 'day').textContent = String(day)
     field(card, 'total').textContent = String(total)
     field(card, 'progress-text').textContent = `Day ${day} of ${total}`
@@ -402,6 +367,11 @@ function renderNextCard(template: HTMLTemplateElement, event: SwimEvent, daysToG
   fillCalendar(field(card, 'calendar'), event)
   fillShare(field(card, 'actions'), event)
   setEventId(card, event)
+  if (atBuild) {
+    reserve(field(card, 'number'))
+    reserve(field(card, 'unit'))
+    return card
+  }
   field(card, 'number').textContent = String(daysToGo)
   field(card, 'unit').textContent = daysToGo === 1 ? 'day to go' : 'days to go'
   return card
@@ -448,8 +418,7 @@ function setCount(name: string, count: number): void {
   if (element) element.textContent = `(${count})`
 }
 
-function render(): void {
-  const today = localToday()
+function render(today: CalendarDate = localToday()): void {
   const kindOf = (event: SwimEvent) => eventTiming(event.dateStart, event.dateEnd, today).kind
   const shown = events.filter((event) => matchesFilters(event, filters, today))
   const filtered = hasFilters(filters)
@@ -472,7 +441,8 @@ function render(): void {
 
   const upcomingList = renderFeatured(live, upcoming, today)
 
-  renderToday(today)
+  if (atBuild) reserve(document.getElementById('today'))
+  else renderToday(today)
   renderGroups('upcoming-events', 'event-card-template', renderCard, upcomingList, startMonth, today)
   renderGroups('past-events', 'past-row-template', renderPastRow, pastShown, startYear, today)
   renderShowMore(pastList.length - pastShown.length)
@@ -841,7 +811,31 @@ async function loadEvents(fresh = false): Promise<void> {
   }
 }
 
-export function initEvents(): void {
+/**
+ * Writes the lists into the page at build time, for search engines and the first paint, from
+ * `list` as of `today`. Runs once, without a browser, on a document made from the built page
+ * (src/integrations/prerender-events.ts); the browser renders the same lists again on load.
+ */
+export function prerenderEvents(list: SwimEvent[], today: CalendarDate): void {
+  atBuild = true
+  try {
+    events = list
+    filters = NO_FILTERS
+    // Every past year and every page, so the built page names every event
+    pastYear = 'all'
+    pastPages = 1
+    render(today)
+  } finally {
+    atBuild = false
+    events = []
+    pastYear = ''
+    pastListKey = ''
+  }
+}
+
+/** Starts the home page's event list; `load` fetches the events (fetchEvents in src/lib/supabase.ts). */
+export function initEvents(load: LoadEvents): void {
+  fetchEvents = load
   const refreshButton = document.getElementById('refresh-events')
   if (!refreshButton || refreshButton.dataset.bound) return
 
