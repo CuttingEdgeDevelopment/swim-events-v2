@@ -6,7 +6,8 @@
  * After `astro build`, this loads the events once through the `events` Edge Function, the same way
  * the browser does, then runs the page's own rendering code on a document made from the built
  * page (happy-dom, with scripts off). The built page shows names, places and dates only: the
- * countdowns depend on the day and the visitor's time zone, so the browser fills them in.
+ * countdowns depend on the day and the visitor's time zone, so the browser fills them in. It also
+ * adds the events that haven't ended as structured data (src/lib/structured-data.ts).
  *
  * If the events can't be loaded, the build fails and Netlify keeps the last good version live.
  * The only exception is a build with the placeholder URL from CI (Dependabot runs get no
@@ -20,9 +21,9 @@ import type { AstroIntegration } from 'astro'
 import { Window } from 'happy-dom'
 import { loadEnv } from 'vite'
 import { prerenderEvents } from '../scripts/events'
+import { eventsData, jsonLd, SITE } from '../lib/structured-data'
 import type { SwimEvent } from '../lib/supabase'
 
-const SITE = 'https://swim-events.com'
 const PLACEHOLDER_HOST = 'placeholder.supabase.co'
 const TIME_ZONE = 'Europe/Zurich'
 
@@ -110,13 +111,23 @@ export default function prerenderEventsIntegration(): AstroIntegration {
         })
         try {
           window.document.write(html)
-          withBrowserGlobals(window, () => prerenderEvents(events, todayInZurich()))
+          const today = todayInZurich()
+          withBrowserGlobals(window, () => prerenderEvents(events, today))
+
+          const script = window.document.createElement('script')
+          script.setAttribute('type', 'application/ld+json')
+          const isoToday = [today.year, today.month, today.day].map((part) => String(part).padStart(2, '0')).join('-')
+          const data = eventsData(events, isoToday)
+          script.textContent = jsonLd(data)
+          window.document.head.append(script)
           const doctype = html.match(/^<!doctype[^>]*>/i)?.[0] ?? '<!DOCTYPE html>'
           await writeFile(file, doctype + window.document.documentElement.outerHTML)
+          logger.info(
+            `Wrote ${events.length} events into index.html, ${(data['@graph'] as unknown[]).length} of them as structured data`,
+          )
         } finally {
           await window.happyDOM.close()
         }
-        logger.info(`Wrote ${events.length} events into index.html`)
       },
     },
   }
