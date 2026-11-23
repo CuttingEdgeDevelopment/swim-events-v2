@@ -7,7 +7,8 @@
  * the browser does, then runs the page's own rendering code on a document made from the built
  * page (happy-dom, with scripts off). The built page shows names, places and dates only: the
  * countdowns depend on the day and the visitor's time zone, so the browser fills them in. It also
- * adds the events that haven't ended as structured data (src/lib/structured-data.ts).
+ * adds the events that haven't ended as structured data (src/lib/structured-data.ts) and
+ * writes them as the feeds /events.json and /events.ics (src/lib/feeds.ts).
  *
  * If the events can't be loaded, the build fails and Netlify keeps the last good version live.
  * The only exception is a build with the placeholder URL from CI (Dependabot runs get no
@@ -22,6 +23,7 @@ import { Window } from 'happy-dom'
 import { loadEnv } from 'vite'
 import { prerenderEvents } from '../scripts/events'
 import { eventsData, jsonLd, SITE } from '../lib/structured-data'
+import { eventsIcs, eventsJson } from '../lib/feeds'
 import type { SwimEvent } from '../lib/supabase'
 
 const PLACEHOLDER_HOST = 'placeholder.supabase.co'
@@ -122,8 +124,11 @@ export default function prerenderEventsIntegration(): AstroIntegration {
           window.document.head.append(script)
           const doctype = html.match(/^<!doctype[^>]*>/i)?.[0] ?? '<!DOCTYPE html>'
           await writeFile(file, doctype + window.document.documentElement.outerHTML)
+          const built = new Date()
+          await writeFile(new URL('events.json', dir), eventsJson(events, isoToday, built.toISOString()))
+          await writeFile(new URL('events.ics', dir), eventsIcs(events, isoToday, built))
           logger.info(
-            `Wrote ${events.length} events into index.html, ${(data['@graph'] as unknown[]).length} of them as structured data`,
+            `Wrote ${events.length} events into index.html, ${(data['@graph'] as unknown[]).length} of them as structured data, and in events.json and events.ics`,
           )
         } finally {
           await window.happyDOM.close()

@@ -3,6 +3,15 @@ import LegalLayout from '@layouts/LegalLayout.astro'
 import { Image } from 'astro:assets'
 import { Link } from 'accessible-astro-components'
 import portrait from '@assets/img/nicolas-messer.jpg'
+
+// The site is rebuilt every night, so this is the day the event lists were last refreshed (Zurich time)
+const refreshed = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich' }).format(new Date())
+const refreshedLabel = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Europe/Zurich',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+}).format(new Date())
 ---
 
 <LegalLayout
@@ -37,6 +46,9 @@ import portrait from '@assets/img/nicolas-messer.jpg'
     We add most events from what organisers publish. Organisers can also
     <a href="/submit">submit their own competition</a>, and we check every submission before it goes live. Dates can
     change, so always check the organiser's website before you travel or enter.
+  </p>
+  <p>
+    The event lists are refreshed every night. Last refreshed on <time datetime={refreshed}>{refreshedLabel}</time>.
   </p>
 
   <section class="about__contact" aria-labelledby="contact-heading">

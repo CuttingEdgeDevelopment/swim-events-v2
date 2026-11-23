@@ -1,0 +1,22 @@
+# Swim Events Calendar
+
+> A calendar of swimming competitions worldwide, from local swim meets to world championships, with a live countdown to each event. Find and share your next swimming event. Part of ProSwimWorkouts.
+
+Every event has a name, dates (whole days), a city and country, and a link to the organiser's website. The home page lists all upcoming and ongoing events, and finished ones under Past. Dates can change, so check the organiser's website before travelling or entering.
+
+## Main pages
+
+- [Swim Events Calendar](https://swim-events.com/): all upcoming, ongoing and past events, with filters by search, time period and country
+- [About](https://swim-events.com/about): who runs the site and how events are listed and checked
+- [Submit an event](https://swim-events.com/submit): organisers can send their competition; every event is checked before it is published
+
+## Data
+
+- [Events as JSON](https://swim-events.com/events.json): all upcoming and ongoing events, refreshed every night
+- [Events as iCalendar](https://swim-events.com/events.ics): the same events as a calendar feed to subscribe to in any calendar app
+
+## Optional
+
+- [Terms of service](https://swim-events.com/terms)
+- [Privacy](https://swim-events.com/privacy)
+- [ProSwimWorkouts](https://proswimworkouts.com/): swim workouts for coaches, the site behind Swim Events Calendar
