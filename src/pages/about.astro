@@ -48,7 +48,10 @@ const refreshedLabel = new Intl.DateTimeFormat('en-GB', {
     change, so always check the organiser's website before you travel or enter.
   </p>
   <p>
-    The event lists are refreshed every night. Last refreshed on <time datetime={refreshed}>{refreshedLabel}</time>.
+    The events on this website are always up to date: they load every time you open the page, and the Update events
+    button loads them again. The two feeds, <a href="/events.ics">events.ics</a> to subscribe to in your calendar app
+    and <a href="/events.json">events.json</a> for apps and websites, are refreshed every night (last refreshed on
+    <time datetime={refreshed}>{refreshedLabel}</time>).
   </p>
 
   <section class="about__contact" aria-labelledby="contact-heading">
