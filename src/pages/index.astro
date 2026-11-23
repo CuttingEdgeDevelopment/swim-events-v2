@@ -18,6 +18,7 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
         Happy <span data-field="weekday"></span> · <time data-field="date"></time>
       </p>
       <h1 class="intro__title">Swim Events Calendar</h1>
+      <p class="intro__tagline">Find and share your next swimming event.</p>
     </div>
   </section>
 
@@ -153,6 +154,12 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
     margin-block-start: var(--space-3xs);
     font-size: var(--font-size-4);
     line-height: 1.15;
+  }
+  .intro__tagline {
+    margin-block-start: var(--space-2xs);
+    color: var(--text-muted-color);
+    font-size: var(--font-size-1);
+    line-height: 1.4;
   }
 
   .all-events {

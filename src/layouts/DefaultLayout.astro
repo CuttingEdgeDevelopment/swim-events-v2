@@ -128,6 +128,8 @@ const siteJsonLd = jsonLd(siteData((themeConfig.socials ?? []).map((social) => s
       }}
     />
 
+    <link rel="alternate" type="text/calendar" href="/events.ics" title="Swim Events: upcoming events" />
+    <link rel="alternate" type="application/json" href="/events.json" title="Swim Events: upcoming events (JSON)" />
     <script is:inline type="application/ld+json" set:html={siteJsonLd} />
 
     <SimpleAnalyticsEvents />
