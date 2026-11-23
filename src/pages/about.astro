@@ -47,11 +47,11 @@ const refreshedLabel = new Intl.DateTimeFormat('en-GB', {
     <a href="/submit">submit their own competition</a>, and we check every submission before it goes live. Dates can
     change, so always check the organiser's website before you travel or enter.
   </p>
-  <p>
-    The events on this website are always up to date: they load every time you open the page, and the Update events
-    button loads them again. The two feeds, <a href="/events.ics">events.ics</a> to subscribe to in your calendar app
-    and <a href="/events.json">events.json</a> for apps and websites, are refreshed every night (last refreshed on
-    <time datetime={refreshed}>{refreshedLabel}</time>).
+  <p class="about__fine">
+    For apps and websites: <a href="/events.json">events.json</a>. To follow every upcoming event in your calendar app,
+    <a href="webcal://swim-events.com/events.ics">subscribe to events.ics</a>. Both are refreshed every night (last
+    refreshed on <time datetime={refreshed}>{refreshedLabel}</time>); the events on the website itself are always up to
+    date.
   </p>
 
   <section class="about__contact" aria-labelledby="contact-heading">
@@ -79,6 +79,12 @@ const refreshedLabel = new Intl.DateTimeFormat('en-GB', {
       color: var(--text-muted-color);
       font-size: var(--font-size--1);
     }
+  }
+
+  // Information for apps and search engines, not for most visitors
+  .about__fine {
+    color: var(--text-muted-color);
+    font-size: var(--font-size--1);
   }
 
   // The contact details in a card, like the panels on the home page
