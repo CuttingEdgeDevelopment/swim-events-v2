@@ -15,7 +15,7 @@ type WebhookPayload = {
 }
 
 const FROM = 'Swim Events <noreply@swim-events.com>'
-const REPLY_TO = 'info@proswimworkouts.com'
+const REPLY_TO = 'swim-events@proton.me'
 
 const env = (name: string): string => {
   const value = Deno.env.get(name)

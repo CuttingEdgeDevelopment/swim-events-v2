@@ -1,0 +1,81 @@
+---
+import LegalLayout from '@layouts/LegalLayout.astro'
+
+const CONTACT = 'swim-events@proton.me'
+---
+
+<LegalLayout
+  title="Security"
+  description="How to report a security problem on Swim Events Calendar, and what you can expect from us."
+  updated="2026-11-27"
+>
+  <p>
+    We take the security of Swim Events Calendar and the data of its organisers seriously. If you think you've found a
+    security problem, please tell us privately, so we can fix it before anyone else uses it.
+  </p>
+
+  <h2>What this covers</h2>
+  <ul>
+    <li>The website swim-events.com, including the account and submit pages.</li>
+    <li>The events widget for other websites (swim-events.com/embed).</li>
+    <li>The services behind the site that it talks to, such as the sign-in and the event list.</li>
+  </ul>
+  <p>
+    Problems in a service we use, such as Netlify, Supabase or Cloudflare, are best reported to that company directly.
+    If it affects Swim Events, we're glad to hear about it too.
+  </p>
+
+  <h2>How to report a problem</h2>
+  <p>
+    Write to <a href={`mailto:${CONTACT}`}>{CONTACT}</a>, in English, German or French. Please don't report security
+    problems in public, for example on social media or in a public code repository.
+  </p>
+  <p>Helpful to include:</p>
+  <ul>
+    <li>the page or address where the problem is;</li>
+    <li>the steps to see it happen;</li>
+    <li>what someone could do with it, for example see other people's data;</li>
+    <li>whether, and how, you'd like to be credited.</li>
+  </ul>
+
+  <h2>What you can expect from us</h2>
+  <p>
+    Swim Events is run by one person, so we keep our promises realistic. We reply within 5 working days, keep you
+    informed while we work on it, and fix confirmed problems as quickly as their seriousness requires. Once a problem is
+    fixed, we're happy to credit you here if you'd like that.
+  </p>
+  <p>
+    We don't run a bug bounty and don't pay for reports. Reports that only ask for payment, or that only pass on the
+    output of an automated scanner, may not get a reply.
+  </p>
+
+  <h2>Rules for testing</h2>
+  <p>
+    If you test in good faith and within these rules, we consider your research authorised and won't take legal action
+    against you for it:
+  </p>
+  <ul>
+    <li>Use only your own account. Never look at, change or delete other people's data or submissions.</li>
+    <li>If you come across someone else's data by accident, stop, don't keep a copy, and tell us.</li>
+    <li>Don't slow the site down or overload it, and don't send spam or many submissions.</li>
+    <li>Don't try to trick people, such as organisers or us, into giving you access.</li>
+    <li>Give us a reasonable time to fix the problem before you talk about it publicly.</li>
+  </ul>
+
+  <h2>What isn't a security problem for us</h2>
+  <ul>
+    <li>Results of automated scanners without a way to show a real impact.</li>
+    <li>
+      Missing or differently set technical headers, or email settings such as SPF and DMARC, without a real impact.
+    </li>
+    <li>The public list of events being readable: it is meant to be public.</li>
+    <li>Attacks that need someone's unlocked device, or that only work against yourself.</li>
+    <li>Overloading the site (denial of service).</li>
+  </ul>
+
+  <h2>For automated tools</h2>
+  <p>
+    The same contact details are available in machine-readable form at
+    <a href="/.well-known/security.txt">/.well-known/security.txt</a>.
+  </p>
+</LegalLayout>

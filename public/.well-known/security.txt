@@ -1,0 +1,6 @@
+# Security contact for Swim Events Calendar (RFC 9116). The policy explains what to include and the rules for testing.
+Contact: mailto:swim-events@proton.me
+Expires: 2027-11-30T23:00:00.000Z
+Preferred-Languages: en, de, fr
+Canonical: https://swim-events.com/.well-known/security.txt
+Policy: https://swim-events.com/security
