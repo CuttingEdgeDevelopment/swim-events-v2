@@ -7,7 +7,7 @@ import { daysBetween, isoDate, parseCalendarDate, type CalendarDate } from './co
 import { parseLocation } from './locations'
 import type { SwimEvent } from './supabase'
 
-export const CONTACT_EMAIL = 'info@proswimworkouts.com'
+export const CONTACT_EMAIL = 'swim-events@proton.me'
 
 /** The first day must be at least this many days after today, in the visitor's own date. */
 export const MIN_DAYS_AHEAD = 3

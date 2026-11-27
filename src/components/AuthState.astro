@@ -1,0 +1,29 @@
+---
+/**
+ * Marks `<html data-signed-in>` before the first paint when this browser holds a Supabase session,
+ * so the header can show "Account" instead of "Submit an event" without loading the Supabase
+ * client on every page. It only looks for the stored session: whether it is still valid is
+ * checked on the account and submit pages, as before.
+ */
+import { PUBLIC_SUPABASE_URL } from 'astro:env/client'
+
+// supabase-js stores the session under sb-<project ref>-auth-token
+const sessionKey = `sb-${new URL(PUBLIC_SUPABASE_URL).hostname.split('.')[0]}-auth-token`
+---
+
+<script is:inline define:vars={{ sessionKey }}>
+  const markSignedIn = () => {
+    let signedIn = false
+    try {
+      signedIn = !!localStorage.getItem(sessionKey)
+    } catch {
+      // storage blocked: treat as signed out
+    }
+    document.documentElement.toggleAttribute('data-signed-in', signedIn)
+  }
+  markSignedIn()
+  // page changes swap the <html> attributes; other tabs and sign-in or sign-out on this page change the session
+  document.addEventListener('astro:after-swap', markSignedIn)
+  window.addEventListener('storage', markSignedIn)
+  window.addEventListener('swim-events:auth', markSignedIn)
+</script>

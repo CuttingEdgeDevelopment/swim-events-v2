@@ -9,6 +9,10 @@ export type NavigationItem =
       highlight?: boolean
       icon?: string
       excludeFromLauncher?: boolean
+      /** Shown as a button instead of a plain link */
+      button?: boolean
+      /** Only shown to signed-in or to signed-out visitors (see AuthState.astro) */
+      show?: 'signed-in' | 'signed-out'
     }
   | {
       type: 'dropdown'
