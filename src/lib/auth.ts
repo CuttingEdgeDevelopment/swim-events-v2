@@ -16,6 +16,10 @@ export const auth = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY, {
   },
 })
 
+// Lets the header (AuthState.astro) switch between "Submit an event" and "Account" right after
+// signing in or out; after the session is stored, so the header reads the new state
+auth.auth.onAuthStateChange(() => setTimeout(() => window.dispatchEvent(new Event('swim-events:auth'))))
+
 /**
  * Turnstile site key. The production key only works on swim-events.com; everywhere else
  * Cloudflare's always-passing test key is used, which local Supabase (captcha off) accepts.

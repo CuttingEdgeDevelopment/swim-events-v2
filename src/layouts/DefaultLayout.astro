@@ -3,6 +3,7 @@ import '../styles/tailwind.css'
 import '../assets/scss/index.scss'
 import themeConfig from '@theme-config'
 import { SEO } from 'astro-seo'
+import AuthState from '@components/AuthState.astro'
 import Header from '@components/Header.astro'
 import Footer from '@components/Footer.astro'
 import SimpleAnalyticsEvents from '@components/SimpleAnalyticsEvents.astro'
@@ -69,6 +70,7 @@ const siteJsonLd = jsonLd(siteData((themeConfig.socials ?? []).map((social) => s
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
+    <AuthState />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 

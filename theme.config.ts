@@ -20,8 +20,10 @@ export default defineThemeConfig({
   navigation: {
     darkmode: true,
     items: [
-      { label: 'Submit an event', href: '/submit' },
-      { label: 'Account', href: '/account' },
+      { label: 'About', href: '/about' },
+      // signed-out visitors get the call to action; signed-in organisers find it on their account page
+      { label: 'Submit an event', href: '/submit', button: true, show: 'signed-out' },
+      { label: 'Account', href: '/account', show: 'signed-in' },
     ],
   },
   socials: [],

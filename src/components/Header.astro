@@ -11,6 +11,12 @@ import { SkipLink } from 'accessible-astro-components'
 <style lang="scss" is:global>
   @use '../assets/scss/base/breakpoint' as *;
 
+  // Items for signed-in or signed-out visitors only (AuthState.astro sets data-signed-in)
+  html[data-signed-in] [data-auth='signed-out'],
+  html:not([data-signed-in]) [data-auth='signed-in'] {
+    display: none;
+  }
+
   header {
     li.type-icon {
       display: block;

@@ -18,12 +18,23 @@ const isCurrentPage = (href: string): boolean => {
 <ul class="menu">
   {
     themeConfig.navigation.items.map((item) => (
-      <li class={`menu-item ${item.type === 'dropdown' ? 'has-dropdown' : ''}`}>
+      <li
+        class={`menu-item ${item.type === 'dropdown' ? 'has-dropdown' : ''}`}
+        data-auth={item.type !== 'dropdown' ? item.show : undefined}
+      >
         {item.type === 'dropdown' ? (
           <button aria-haspopup="true" aria-expanded="false">
             {item.label}
             <Icon aria-hidden="true" name="lucide:chevron-down" size="24" />
           </button>
+        ) : (!item.type || item.type === 'link') && item.button ? (
+          <a
+            href={item.href}
+            class="button button--small nav-button"
+            aria-current={isCurrentPage(item.href) ? 'page' : undefined}
+          >
+            {item.label}
+          </a>
         ) : !item.type || item.type === 'link' ? (
           <Link
             href={item.href}

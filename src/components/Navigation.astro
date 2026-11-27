@@ -273,9 +273,20 @@ const hasMenu = themeConfig.navigation.items.length > 0
       gap: var(--space-m);
     }
 
-    a,
+    a:not(.nav-button),
     button {
       color: var(--foreground-color);
+    }
+
+    // "Submit an event": the site's primary button, without the menu's wavy underline
+    .nav-button {
+      color: var(--on-pool-color);
+
+      &:hover,
+      &:focus-visible,
+      &[aria-current='page'] {
+        text-decoration: none;
+      }
     }
 
     nav {
@@ -323,11 +334,15 @@ const hasMenu = themeConfig.navigation.items.length > 0
         }
       }
 
-      a,
+      a:not(.nav-button),
       button {
         display: block;
         padding: var(--space-2xs) 0;
         inline-size: 100%;
+      }
+
+      .nav-button {
+        margin-block: var(--space-2xs);
       }
     }
 
