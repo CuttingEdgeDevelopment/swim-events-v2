@@ -22,8 +22,7 @@ const sessionKey = `sb-${new URL(PUBLIC_SUPABASE_URL).hostname.split('.')[0]}-au
     document.documentElement.toggleAttribute('data-signed-in', signedIn)
   }
   markSignedIn()
-  // page changes swap the <html> attributes; other tabs and sign-in or sign-out on this page change the session
-  document.addEventListener('astro:after-swap', markSignedIn)
+  // other tabs, and signing in or out on this page, change the session
   window.addEventListener('storage', markSignedIn)
   window.addEventListener('swim-events:auth', markSignedIn)
 </script>

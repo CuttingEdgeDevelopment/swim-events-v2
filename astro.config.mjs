@@ -1,14 +1,50 @@
 import { defineConfig, envField } from 'astro/config'
+import { loadEnv } from 'vite'
 import { fileURLToPath } from 'url'
 import compress from 'astro-compress'
 import icon from 'astro-icon'
 import sitemap from '@astrojs/sitemap'
 import tailwindcss from '@tailwindcss/vite'
 import prerenderEvents from './src/integrations/prerender-events'
+import cspInlineHashes from './src/integrations/csp-inline-hashes'
 
 // Pages kept out of search results: they carry a noindex tag (embed.astro, and the noindex prop of
 // DefaultLayout), and robots.txt must not block them, or search engines never see the tag
 const NOT_IN_SITEMAP = ['/embed', '/account', '/submit', '/404']
+
+// Supabase API (events, sign-in, submissions), from .env locally and the Netlify settings on deploy
+const { PUBLIC_SUPABASE_URL } = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '')
+const SUPABASE_ORIGIN = PUBLIC_SUPABASE_URL ? new URL(PUBLIC_SUPABASE_URL).origin : ''
+
+// Content Security Policy: which sources pages may load scripts, styles, data and frames from.
+// Astro puts it in a <meta> tag on every page, with hashes for its bundled scripts; cspInlineHashes()
+// adds the is:inline ones.
+// A new outside service (a newsletter form, another analytics tool) must be added here, or the
+// browser blocks it. frame-ancestors can't go in a <meta> tag: it is set in netlify.toml.
+// Netlify's preview toolbar (the Drawer) is a frame from app.netlify.com. It is allowed on deploy
+// previews only: Netlify sets CONTEXT during the build, and the live site never shows the toolbar.
+const NETLIFY_DRAWER = process.env.CONTEXT === 'deploy-preview' ? ' https://app.netlify.com' : ''
+
+const csp = {
+  directives: [
+    "default-src 'self'",
+    `connect-src 'self' ${SUPABASE_ORIGIN} https://queue.simpleanalyticscdn.com`,
+    "img-src 'self' data: https://queue.simpleanalyticscdn.com",
+    "font-src 'self'",
+    // Cloudflare Turnstile, the sign-in check
+    `frame-src https://challenges.cloudflare.com${NETLIFY_DRAWER}`,
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ],
+  scriptDirective: {
+    resources: ["'self'", 'https://scripts.simpleanalyticscdn.com', 'https://challenges.cloudflare.com'],
+  },
+  // The add-to-calendar button sets inline styles, which hashes can't cover
+  styleDirective: {
+    resources: ["'self'", "'unsafe-inline'"],
+  },
+}
 
 const viteConfig = {
   css: {
@@ -40,11 +76,15 @@ const viteConfig = {
 
 export default defineConfig({
   compressHTML: true,
+  security: { csp },
   site: 'https://swim-events.com',
   integrations: [
     // Before compress(), which minifies what it writes
     prerenderEvents(),
+    // Inline scripts stay as Astro wrote them: minifying them would break their CSP hashes
     compress(),
+    // After compress(), so it hashes the inline scripts as they are finally written
+    cspInlineHashes(),
     icon(),
     sitemap({ filter: (page) => !NOT_IN_SITEMAP.some((path) => new URL(page).pathname.startsWith(path)) }),
   ],

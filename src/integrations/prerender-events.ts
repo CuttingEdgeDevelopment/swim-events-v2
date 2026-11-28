@@ -24,6 +24,7 @@ import { loadEnv } from 'vite'
 import { prerenderEvents } from '../scripts/events'
 import { eventsData, jsonLd, SITE } from '../lib/structured-data'
 import { eventsIcs, eventsJson } from '../lib/feeds'
+import { safeLinks } from '../lib/safe-links'
 import type { SwimEvent } from '../lib/supabase'
 
 const PLACEHOLDER_HOST = 'placeholder.supabase.co'
@@ -55,7 +56,7 @@ async function loadEvents(supabaseUrl: string): Promise<SwimEvent[]> {
   const events = (await response.json()) as SwimEvent[]
   // The site never has zero events, so an empty answer means something broke on the database side
   if (!Array.isArray(events) || events.length === 0) throw new Error(`Loading events failed: no events from ${url}`)
-  return events
+  return safeLinks(events)
 }
 
 /** Runs `render` with the browser globals the rendering code uses pointing at `window`. */

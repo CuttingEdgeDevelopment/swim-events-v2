@@ -136,7 +136,7 @@ import { Notification, Tabs, TabsList, TabsPanel, TabsTab } from 'accessible-ast
   import { initEvents } from '../scripts/events'
   import { fetchEvents } from '../lib/supabase'
 
-  document.addEventListener('astro:page-load', () => initEvents(fetchEvents))
+  initEvents(fetchEvents)
 </script>
 
 <style lang="scss">
