@@ -21,6 +21,10 @@ const SUPABASE_ORIGIN = PUBLIC_SUPABASE_URL ? new URL(PUBLIC_SUPABASE_URL).origi
 // adds the is:inline ones.
 // A new outside service (a newsletter form, another analytics tool) must be added here, or the
 // browser blocks it. frame-ancestors can't go in a <meta> tag: it is set in netlify.toml.
+// Netlify's preview toolbar (the Drawer) is a frame from app.netlify.com. It is allowed on deploy
+// previews only: Netlify sets CONTEXT during the build, and the live site never shows the toolbar.
+const NETLIFY_DRAWER = process.env.CONTEXT === 'deploy-preview' ? ' https://app.netlify.com' : ''
+
 const csp = {
   directives: [
     "default-src 'self'",
@@ -28,7 +32,7 @@ const csp = {
     "img-src 'self' data: https://queue.simpleanalyticscdn.com",
     "font-src 'self'",
     // Cloudflare Turnstile, the sign-in check
-    'frame-src https://challenges.cloudflare.com',
+    `frame-src https://challenges.cloudflare.com${NETLIFY_DRAWER}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
