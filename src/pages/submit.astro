@@ -230,5 +230,5 @@ const countries = Object.entries(COUNTRIES).sort(([, a], [, b]) => a.name.locale
 <script>
   import { initSubmit } from '../scripts/submit'
 
-  document.addEventListener('astro:page-load', initSubmit)
+  initSubmit()
 </script>

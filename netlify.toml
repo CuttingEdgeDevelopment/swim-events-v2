@@ -5,13 +5,26 @@
 [build.environment]
   NODE_VERSION = "24.19.0"
 
-# The events widget may only be framed by our own sites (see src/pages/embed.astro and the terms)
+# Security headers for every page. The main Content Security Policy is a <meta> tag that Astro
+# writes into each page (security.csp in astro.config.mjs). frame-ancestors only works as a header,
+# so it is set here: only our own sites may show our pages in a frame, which the events widget
+# (src/pages/embed.astro, and the terms) relies on.
 [[headers]]
-  for = "/embed/*"
+  for = "/*"
   [headers.values]
     Content-Security-Policy = "frame-ancestors 'self' https://proswimworkouts.com https://www.proswimworkouts.com"
+    Strict-Transport-Security = "max-age=31536000"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+
+# Sign-in and submission pages may never be framed, not even by our own sites (clickjacking)
+[[headers]]
+  for = "/account*"
+  [headers.values]
+    Content-Security-Policy = "frame-ancestors 'none'"
 
 [[headers]]
-  for = "/embed"
+  for = "/submit*"
   [headers.values]
-    Content-Security-Policy = "frame-ancestors 'self' https://proswimworkouts.com https://www.proswimworkouts.com"
+    Content-Security-Policy = "frame-ancestors 'none'"

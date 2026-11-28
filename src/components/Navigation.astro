@@ -39,7 +39,8 @@ const hasMenu = themeConfig.navigation.items.length > 0
 </div>
 
 <script>
-  document.addEventListener('astro:page-load', () => {
+  // Runs once per page: every navigation is a full page load (no client-side router)
+  ;(() => {
     const mainNav = document.querySelector('#main-navigation') as HTMLElement | null
     if (!mainNav) return
 
@@ -216,7 +217,7 @@ const hasMenu = themeConfig.navigation.items.length > 0
         closeAllDropdownMenus()
       }
     })
-  })
+  })()
 </script>
 
 <style lang="scss" is:global>

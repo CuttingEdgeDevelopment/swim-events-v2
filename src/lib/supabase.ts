@@ -1,4 +1,5 @@
 import { PUBLIC_SUPABASE_URL } from 'astro:env/client'
+import { safeLinks } from './safe-links'
 
 export type SwimEvent = {
   id: number
@@ -31,5 +32,5 @@ export class EventsError extends Error {
 export async function fetchEvents({ fresh = false }: { fresh?: boolean } = {}): Promise<SwimEvent[]> {
   const response = await fetch(EVENTS_URL, { cache: fresh ? 'no-cache' : 'default' })
   if (!response.ok) throw new EventsError(response.status)
-  return (await response.json()) as SwimEvent[]
+  return safeLinks((await response.json()) as SwimEvent[])
 }
