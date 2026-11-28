@@ -249,12 +249,14 @@ export function initAccount(): void {
     status.textContent = ''
     setBusy(button, true, 'Saving…')
     const { data } = await auth.auth.getSession()
-    const { error } = await auth
+    const { data: saved, error } = await auth
       .from('profiles')
       .update({ display_name: nameInput.value.trim() || null, organisation: organisationInput.value.trim() || null })
       .eq('id', data.session?.user.id ?? '')
+      .select('id')
     setBusy(button, false, '')
-    if (error) {
+    // No row updated (a missing profile, an expired session) is a failure too, not "saved"
+    if (error || !saved?.length) {
       showNotice(field('profile-notice'), 'We couldn’t save your profile. Check your connection and try again.')
       return
     }

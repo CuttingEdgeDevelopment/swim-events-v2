@@ -38,10 +38,21 @@ export type Profile = {
   blocked: boolean
 }
 
+async function fetchProfile(): Promise<Profile | null> {
+  const { data, error } = await auth.from('profiles').select('*').maybeSingle<Profile>()
+  if (error) throw error
+  return data
+}
+
 /** The signed-in user's profile, recording the terms acceptance from the sign-in step. */
 export async function loadProfile(): Promise<Profile | null> {
-  const { data: profile, error } = await auth.from('profiles').select('*').maybeSingle<Profile>()
-  if (error) throw error
+  let profile = await fetchProfile()
+  if (!profile) {
+    // The account exists but its profile row was deleted: create a fresh one, so saving works again
+    const { error } = await auth.rpc('ensure_profile')
+    if (error) throw error
+    profile = await fetchProfile()
+  }
   if (profile && !profile.terms_accepted_at) {
     // Signing in always needs the terms box ticked, so the first sign-in is the acceptance
     const accepted = new Date().toISOString()
